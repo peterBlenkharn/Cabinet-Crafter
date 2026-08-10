@@ -2,8 +2,10 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 
-const appSource = readFileSync(new URL('../wwwroot/js/app.js', import.meta.url), 'utf8');
-const uiSource = readFileSync(new URL('../wwwroot/js/ui.js', import.meta.url), 'utf8');
+const readSource = relativePath => readFileSync(new URL(relativePath, import.meta.url), 'utf8')
+    .replace(/\r\n?/g, '\n');
+const appSource = readSource('../wwwroot/js/app.js');
+const uiSource = readSource('../wwwroot/js/ui.js');
 const applyProjectDataSource = appSource.match(
     /applyProjectData\(data = \{\}, \{ file = null, recovered = false \} = \{\}\) \{([\s\S]*?)\n    \}\n\n    handleProjectLoadError/
 )?.[1] || '';
