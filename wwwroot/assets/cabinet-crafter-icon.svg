@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-labelledby="title">
+  <title id="title">Cabinet Crafter app icon</title>
+  <rect width="256" height="256" rx="48" fill="#181816"/>
+  <path d="M70 39h104l27 32v146H55V71z" fill="#ffef72"/>
+  <path d="M83 62h77l18 21v31H83z" fill="#181816"/>
+  <rect x="83" y="130" width="95" height="27" rx="5" fill="#181816"/>
+  <circle cx="112" cy="143.5" r="8" fill="#ffef72"/>
+  <circle cx="143" cy="143.5" r="8" fill="#ffef72"/>
+  <path d="M83 174h95v20H83z" fill="#181816"/>
+  <path d="M55 71h28v146H55z" fill="#e2c940"/>
+</svg>

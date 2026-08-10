@@ -1,0 +1,186 @@
+name: Windows release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  release-win-x64:
+    name: Test, package, inventory, and release win-x64
+    runs-on: windows-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+
+      - name: Confirm tag matches the project version
+        id: version
+        shell: pwsh
+        run: |
+          [xml]$project = Get-Content -LiteralPath "CabinetCrafter.csproj" -Raw
+          $versionPropertyGroup = @($project.Project.PropertyGroup | Where-Object {
+            $versionNode = $_.SelectSingleNode("Version")
+            $null -ne $versionNode -and -not [string]::IsNullOrWhiteSpace($versionNode.InnerText)
+          }) | Select-Object -First 1
+          $version = [string]$versionPropertyGroup.SelectSingleNode("Version").InnerText
+          $expectedTag = "v$version"
+          if ($env:GITHUB_REF_NAME -ne $expectedTag) {
+            throw "Release tag '$env:GITHUB_REF_NAME' does not match project version '$expectedTag'."
+          }
+          "version=$version" | Out-File -LiteralPath $env:GITHUB_OUTPUT -Append -Encoding utf8
+
+      - name: Run contract and release tests
+        run: npm run test:ci
+
+      - name: Restore locked desktop dependencies
+        run: dotnet restore CabinetCrafter.csproj --runtime win-x64 --locked-mode
+
+      - name: Build staged portable release
+        id: prepare
+        shell: pwsh
+        run: ./tools/build-release.ps1 -NoRestore -SkipArchive
+
+      - name: Sign Cabinet Crafter when credentials are configured
+        shell: pwsh
+        env:
+          WINDOWS_SIGNING_CERTIFICATE_BASE64: ${{ secrets.WINDOWS_SIGNING_CERTIFICATE_BASE64 }}
+          WINDOWS_SIGNING_CERTIFICATE_PASSWORD: ${{ secrets.WINDOWS_SIGNING_CERTIFICATE_PASSWORD }}
+          WINDOWS_SIGNING_TIMESTAMP_URL: ${{ secrets.WINDOWS_SIGNING_TIMESTAMP_URL }}
+        run: |
+          $hasCertificate = -not [string]::IsNullOrWhiteSpace($env:WINDOWS_SIGNING_CERTIFICATE_BASE64)
+          $hasPassword = -not [string]::IsNullOrWhiteSpace($env:WINDOWS_SIGNING_CERTIFICATE_PASSWORD)
+          if (-not $hasCertificate -and -not $hasPassword) {
+            Write-Host "Authenticode signing is not configured. Publishing an unsigned release."
+            exit 0
+          }
+          if (-not $hasCertificate -or -not $hasPassword) {
+            throw "Signing configuration is incomplete. Configure both certificate and password secrets, or remove both."
+          }
+
+          $certificatePath = Join-Path $env:RUNNER_TEMP "cabinet-crafter-signing.pfx"
+          try {
+            [System.IO.File]::WriteAllBytes(
+              $certificatePath,
+              [System.Convert]::FromBase64String($env:WINDOWS_SIGNING_CERTIFICATE_BASE64))
+
+            $kitsRoot = Join-Path ${env:ProgramFiles(x86)} "Windows Kits\10\bin"
+            $signTool = Get-ChildItem -LiteralPath $kitsRoot -Filter "signtool.exe" -Recurse |
+              Where-Object { $_.FullName -match "\\x64\\signtool\.exe$" } |
+              Sort-Object FullName -Descending |
+              Select-Object -First 1
+            if ($null -eq $signTool) {
+              throw "signtool.exe was not found on the Windows runner."
+            }
+
+            $signArguments = @(
+              "sign",
+              "/fd", "sha256",
+              "/f", $certificatePath,
+              "/p", $env:WINDOWS_SIGNING_CERTIFICATE_PASSWORD
+            )
+            if (-not [string]::IsNullOrWhiteSpace($env:WINDOWS_SIGNING_TIMESTAMP_URL)) {
+              $signArguments += @(
+                "/tr", $env:WINDOWS_SIGNING_TIMESTAMP_URL,
+                "/td", "sha256"
+              )
+            }
+            $signArguments += (Join-Path "${{ steps.prepare.outputs.package_dir }}" "CabinetCrafter.exe")
+
+            & $signTool.FullName @signArguments
+            if ($LASTEXITCODE -ne 0) {
+              throw "Authenticode signing failed with exit code $LASTEXITCODE."
+            }
+
+            $signature = Get-AuthenticodeSignature -LiteralPath (Join-Path "${{ steps.prepare.outputs.package_dir }}" "CabinetCrafter.exe")
+            if ($signature.Status -ne [System.Management.Automation.SignatureStatus]::Valid) {
+              throw "The signed executable did not validate. Status: $($signature.Status)."
+            }
+          }
+          finally {
+            if (Test-Path -LiteralPath $certificatePath) {
+              Remove-Item -LiteralPath $certificatePath -Force
+            }
+          }
+
+      - name: Run packaged application startup smoke
+        shell: pwsh
+        run: |
+          $executable = Join-Path "${{ steps.prepare.outputs.package_dir }}" "CabinetCrafter.exe"
+          foreach ($argument in @("--smoke-test", "--integration-smoke-test")) {
+            $smoke = Start-Process -FilePath $executable -ArgumentList $argument -WindowStyle Hidden -PassThru
+            if (-not $smoke.WaitForExit(60000)) {
+              Stop-Process -Id $smoke.Id -Force
+              throw "Packaged startup smoke timed out: $argument"
+            }
+            if ($smoke.ExitCode -ne 0) {
+              throw "Packaged startup smoke failed with exit code $($smoke.ExitCode): $argument"
+            }
+          }
+
+      - name: Refresh and verify the signed release manifest
+        shell: pwsh
+        run: ./tools/build-release.ps1 -NoRestore -SkipPublish -SkipArchive
+
+      - name: Generate SPDX software bill of materials
+        uses: anchore/sbom-action@v0
+        with:
+          path: ${{ steps.prepare.outputs.package_dir }}
+          format: spdx-json
+          output-file: artifacts/release/${{ steps.prepare.outputs.package_name }}.spdx.json
+
+      - name: Archive the verified staged release
+        id: package
+        shell: pwsh
+        run: ./tools/build-release.ps1 -NoRestore -SkipPublish
+
+      - name: Hash the software bill of materials
+        id: sbom
+        shell: pwsh
+        run: |
+          $sbomPath = Join-Path "artifacts/release" "${{ steps.prepare.outputs.package_name }}.spdx.json"
+          if (-not (Test-Path -LiteralPath $sbomPath -PathType Leaf)) {
+            throw "SBOM was not generated: $sbomPath"
+          }
+          $checksumPath = "$sbomPath.sha256"
+          $hash = (Get-FileHash -LiteralPath $sbomPath -Algorithm SHA256).Hash.ToLowerInvariant()
+          "$hash  $([System.IO.Path]::GetFileName($sbomPath))" | Out-File -LiteralPath $checksumPath -Encoding ascii
+          "sbom_path=$([System.IO.Path]::GetFullPath($sbomPath))" | Out-File -LiteralPath $env:GITHUB_OUTPUT -Append -Encoding utf8
+          "sbom_checksum_path=$([System.IO.Path]::GetFullPath($checksumPath))" | Out-File -LiteralPath $env:GITHUB_OUTPUT -Append -Encoding utf8
+
+      - name: Upload release artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.prepare.outputs.package_name }}-release
+          path: |
+            ${{ steps.package.outputs.archive_path }}
+            ${{ steps.package.outputs.checksum_path }}
+            ${{ steps.sbom.outputs.sbom_path }}
+            ${{ steps.sbom.outputs.sbom_checksum_path }}
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          generate_release_notes: true
+          fail_on_unmatched_files: true
+          files: |
+            ${{ steps.package.outputs.archive_path }}
+            ${{ steps.package.outputs.checksum_path }}
+            ${{ steps.sbom.outputs.sbom_path }}
+            ${{ steps.sbom.outputs.sbom_checksum_path }}

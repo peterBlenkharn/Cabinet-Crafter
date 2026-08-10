@@ -1,0 +1,30 @@
+{
+  "standard": {
+    "schema": "CabinetCrafter.FabricationManifestV1",
+    "version": "1.0",
+    "units": "mm",
+    "project": { "name": "Golden Standard", "presetId": "standard" },
+    "counts": { "materials": 1, "parts": 4, "contours": 4, "operations": 6, "joints": 1, "fasteners": 1, "keepouts": 1 },
+    "parts": [
+      { "id": "side_left", "quantity": 1, "thicknessMm": 18, "dimensions": { "lengthMm": 1000, "widthMm": 600 }, "included": true, "viewportVisible": true, "operationCount": 1 },
+      { "id": "side_right", "quantity": 1, "thicknessMm": 18, "dimensions": { "lengthMm": 1000, "widthMm": 600 }, "included": true, "viewportVisible": false, "operationCount": 1 },
+      { "id": "panel_cp", "quantity": 1, "thicknessMm": 18, "dimensions": { "lengthMm": 300, "widthMm": 650 }, "included": true, "viewportVisible": true, "operationCount": 3 },
+      { "id": "panel_back", "quantity": 1, "thicknessMm": 18, "dimensions": { "lengthMm": 800, "widthMm": 600 }, "included": true, "viewportVisible": true, "operationCount": 1 }
+    ],
+    "joints": [{ "id": "joint-cp-left", "includedAngleDeg": 90, "bevelAnglesDeg": [45, 45] }]
+  },
+  "barTop": {
+    "schema": "CabinetCrafter.FabricationManifestV1",
+    "version": "1.0",
+    "units": "mm",
+    "project": { "name": "Golden Bar-top", "presetId": "barstool" },
+    "counts": { "materials": 1, "parts": 4, "contours": 4, "operations": 6, "joints": 1, "fasteners": 1, "keepouts": 1 },
+    "parts": [
+      { "id": "side_left", "quantity": 1, "thicknessMm": 18, "dimensions": { "lengthMm": 650, "widthMm": 500 }, "included": true, "viewportVisible": true, "operationCount": 1 },
+      { "id": "side_right", "quantity": 1, "thicknessMm": 18, "dimensions": { "lengthMm": 650, "widthMm": 500 }, "included": true, "viewportVisible": false, "operationCount": 1 },
+      { "id": "panel_cp", "quantity": 1, "thicknessMm": 18, "dimensions": { "lengthMm": 260, "widthMm": 550 }, "included": true, "viewportVisible": true, "operationCount": 3 },
+      { "id": "panel_back", "quantity": 1, "thicknessMm": 18, "dimensions": { "lengthMm": 500, "widthMm": 500 }, "included": true, "viewportVisible": true, "operationCount": 1 }
+    ],
+    "joints": [{ "id": "joint-cp-left", "includedAngleDeg": 90, "bevelAnglesDeg": [45, 45] }]
+  }
+}

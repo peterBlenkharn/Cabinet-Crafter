@@ -1,0 +1,35 @@
+#Local AI/editor metadata
+.agents/
+.codex/
+.claude/
+.cursor/
+AGENTS.md
+CLAUDE.md
+
+# Secrets and signing material
+/secrets/
+.env
+.env.*
+!.env.example
+*.pfx
+*.p12
+*.pem
+*.key
+*.snk
+
+# Test and analysis output
+TestResults/
+coverage/
+*.coverage
+*.coveragexml
+*.trx
+*.log
+
+bin/
+obj/
+artifacts/
+tools/tmp/
+node_modules/
+*.user
+*.suo
+.vs/

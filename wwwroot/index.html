@@ -1,0 +1,1309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cabinet Crafter - Parametric Arcade CAD</title>
+    <link rel="icon" href="assets/cabinet-crafter-icon.svg" type="image/svg+xml">
+    <link rel="stylesheet" href="style.css">
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "./js/lib/three.module.js",
+          "three/addons/controls/OrbitControls.js": "./js/lib/orbit-controls.js"
+        }
+      }
+    </script>
+</head>
+<body>
+    <div class="app-container">
+        <header class="app-header" aria-label="Project toolbar">
+            <div class="header-primary">
+                <div class="header-project-cluster">
+                    <div class="logo">
+                        <span>CABINET_CRAFTER</span>
+                        <span class="badge">PARAMETRIC CNC</span>
+                    </div>
+                    <label class="project-identity" for="project-name">
+                        <span class="sr-only">Project name</span>
+                        <input id="project-name" type="text" value="Untitled cabinet" maxlength="80" autocomplete="off" spellcheck="false">
+                        <span id="dirty-indicator" class="save-state" aria-live="polite">Saved</span>
+                    </label>
+                </div>
+                <div class="viewport-context header-status" aria-label="Viewport status" aria-live="polite">
+                    <span id="viewport-orientation" title="Current view: Perspective">Perspective</span>
+                    <span id="viewport-selection" title="No part selected">No part selected</span>
+                    <span id="viewport-dimensions"></span>
+                </div>
+                <div class="global-actions" role="group" aria-label="Project actions">
+                    <div class="unit-toggle" role="group" aria-label="Display units">
+                        <button id="unit-mm" type="button" class="unit-btn active" aria-pressed="true">mm</button>
+                        <button id="unit-in" type="button" class="unit-btn" aria-pressed="false">in</button>
+                    </div>
+                    <button id="btn-undo" class="btn btn-secondary btn-icon" type="button" disabled title="Undo (Ctrl+Z)">Undo</button>
+                    <button id="btn-redo" class="btn btn-secondary btn-icon" type="button" disabled title="Redo (Ctrl+Y)">Redo</button>
+                    <button id="btn-save" class="btn btn-secondary" type="button" title="Save project (Ctrl+S)">Save</button>
+                    <details id="project-command-menu" class="header-command-menu">
+                        <summary class="btn btn-secondary" aria-label="Open project and application commands">More</summary>
+                        <div class="header-command-menu-panel" role="group" aria-label="Project and application commands">
+                            <div class="header-command-unit-toggle" role="group" aria-label="Display units">
+                                <button id="unit-mm-menu" class="btn btn-secondary active" type="button" aria-pressed="true">Millimetres</button>
+                                <button id="unit-in-menu" class="btn btn-secondary" type="button" aria-pressed="false">Inches</button>
+                            </div>
+                            <button id="btn-undo-menu" class="btn btn-secondary" type="button" disabled>Undo</button>
+                            <button id="btn-redo-menu" class="btn btn-secondary" type="button" disabled>Redo</button>
+                            <button id="btn-save-menu" class="btn btn-secondary" type="button">Save project</button>
+                            <button id="btn-new" class="btn btn-secondary" type="button">New project</button>
+                            <button id="btn-save-as" class="btn btn-secondary btn-icon" type="button" title="Save project as a new file (Ctrl+Shift+S)">Save as</button>
+                            <button id="btn-load" class="btn btn-secondary" type="button" title="Open project (Ctrl+O)">Open</button>
+                            <button id="btn-project-tools" class="btn btn-secondary" type="button" title="Recent projects, recoveries and user presets">Projects and presets</button>
+                            <button id="btn-theme" class="btn btn-secondary btn-icon" type="button" title="Switch colour theme" aria-label="Switch to dark mode">Dark theme</button>
+                            <button id="btn-status-history" class="btn btn-secondary" type="button" aria-label="Status and notifications">Status</button>
+                        </div>
+                    </details>
+                    <button id="btn-help" class="btn btn-secondary" type="button" aria-haspopup="dialog">Help</button>
+                    <button id="btn-export" class="btn btn-primary" type="button" title="Review and export fabrication files">
+                        Export <span id="export-issue-count" class="action-badge" hidden></span>
+                    </button>
+                    <input type="file" id="file-load-project" accept=".json" hidden>
+                </div>
+            </div>
+            <nav class="maker-nav" aria-label="Maker workflow">
+                <span class="maker-nav-label">Workflow</span>
+                <button class="maker-nav-step active" type="button" data-maker-step="design" aria-label="Design stage" aria-current="step">
+                    <span class="maker-step-number">1</span><span class="maker-step-copy"><strong>Design</strong><small>Shape and controls</small></span>
+                </button>
+                <span class="maker-nav-arrow" aria-hidden="true">&rarr;</span>
+                <button class="maker-nav-step" type="button" data-maker-step="hardware" aria-label="Hardware stage">
+                    <span class="maker-step-number">2</span><span class="maker-step-copy"><strong>Hardware</strong><small>Fit and components</small></span>
+                </button>
+                <span class="maker-nav-arrow" aria-hidden="true">&rarr;</span>
+                <button class="maker-nav-step" type="button" data-maker-step="review" aria-label="Review stage">
+                    <span class="maker-step-number">3</span><span class="maker-step-copy"><strong>Review</strong><small>Resolve findings</small></span>
+                    <span id="maker-review-count" class="maker-step-badge" hidden></span>
+                </button>
+                <span class="maker-nav-arrow" aria-hidden="true">&rarr;</span>
+                <button class="maker-nav-step" type="button" data-maker-step="sheets" aria-label="Sheets stage">
+                    <span class="maker-step-number">4</span><span class="maker-step-copy"><strong>Sheets</strong><small>Stock and layouts</small></span>
+                </button>
+                <span class="maker-nav-arrow" aria-hidden="true">&rarr;</span>
+                <button class="maker-nav-step" type="button" data-maker-step="export" aria-label="Export stage">
+                    <span class="maker-step-number">5</span><span class="maker-step-copy"><strong>Export</strong><small>Files and BOM</small></span>
+                </button>
+                <button id="btn-design-continue" class="maker-nav-confirm" type="button">Confirm design</button>
+            </nav>
+        </header>
+
+        <nav class="viewport-toolbar" aria-label="Camera and component visibility">
+            <button id="btn-toggle-viewport-toolbar" class="viewport-toolbar-toggle tool-btn" type="button" aria-expanded="true" aria-controls="viewport-toolbar-controls">Hide views</button>
+            <div id="viewport-toolbar-controls" class="viewport-toolbar-controls">
+                <div class="toolbar-group" role="group" aria-label="Camera views">
+                    <button id="btn-view-perspective" class="tool-btn active" type="button" aria-pressed="true">3D</button>
+                    <button id="btn-view-front" class="tool-btn" type="button" aria-pressed="false">Front</button>
+                    <button id="btn-view-side" class="tool-btn" type="button" aria-pressed="false">Side</button>
+                    <button id="btn-view-top" class="tool-btn" type="button" aria-pressed="false">Top</button>
+                </div>
+                <div class="toolbar-group" role="group" aria-label="Frame view">
+                    <button id="btn-fit-view" class="tool-btn" type="button" title="Fit cabinet in view">Fit</button>
+                    <button id="btn-frame-selected" class="tool-btn" type="button" title="Frame selected component" disabled>Frame selected</button>
+                    <button id="btn-reset-view" class="tool-btn" type="button" title="Reset perspective view (Home)">Reset</button>
+                </div>
+                <div class="toolbar-group" role="group" aria-label="Component visibility">
+                    <button id="btn-isolate-selected" class="tool-btn" type="button" title="Show only the selected component" disabled>Isolate</button>
+                    <button id="btn-show-all" class="tool-btn" type="button" title="Show every cabinet panel">Show all</button>
+                    <button id="btn-toggle-screws" class="tool-btn active" type="button" title="Hide screws" aria-pressed="true">Screws</button>
+                </div>
+                <div class="toolbar-group" role="group" aria-label="Workspace panels">
+                    <button id="btn-toggle-left-sidebar" class="tool-btn" type="button" aria-pressed="true">Controls</button>
+                    <button id="btn-toggle-right-sidebar" class="tool-btn" type="button" aria-pressed="true">Inspector</button>
+                    <button id="btn-viewport-guide" class="tool-btn" type="button" aria-haspopup="dialog">3D help</button>
+                </div>
+            </div>
+        </nav>
+
+        <main id="canvas-container" aria-labelledby="workspace-title" aria-describedby="viewport-instructions">
+            <h1 id="workspace-title" class="sr-only">Cabinet Crafter design workspace</h1>
+            <p id="viewport-instructions" class="sr-only">Interactive three-dimensional cabinet preview. Use the camera toolbar to change view and the Cabinet panels list to select components.</p>
+        </main>
+
+        <aside class="sidebar sidebar-left" aria-label="Design controls">
+            <div class="expert-panel-label">
+                <span>Design</span>
+                <div class="workspace-mode-toggle" role="group" aria-label="Control detail">
+                    <button id="btn-mode-guided" class="workspace-mode-button" type="button" aria-pressed="false">Guided</button>
+                    <button id="btn-mode-detailed" class="workspace-mode-button active" type="button" aria-pressed="true">Detailed</button>
+                </div>
+            </div>
+            <div class="parameter-search-wrap">
+                <label for="parameter-search">Find a setting</label>
+                <input id="parameter-search" type="search" autocomplete="off" placeholder="Width, apron, cable port...">
+                <p id="parameter-search-status" class="section-hint" role="status" aria-live="polite"></p>
+            </div>
+            <div id="guided-settings-summary" class="guided-settings-summary" hidden>
+                <strong>Guided controls</strong>
+                <span>Core settings are shown. Existing detailed values remain active.</span>
+                <button id="btn-show-detailed-settings" class="btn btn-secondary btn-sm" type="button">Show all controls</button>
+            </div>
+            <section class="sidebar-section">
+                <h2>Presets</h2>
+                <div class="preset-grid">
+                    <button class="preset-card active" data-preset="standard">
+                        <span class="preset-title">Standard</span>
+                        <span class="preset-desc">Full upright cabinet</span>
+                    </button>
+                    <button class="preset-card" data-preset="barstool">
+                        <span class="preset-title">Bar-top</span>
+                        <span class="preset-desc">Squat bar-top cabinet</span>
+                    </button>
+                </div>
+            </section>
+
+            <section class="sidebar-section">
+                <h2>Parameters</h2>
+                <div class="tabs">
+                    <button class="tab-btn active" data-tab="structure">Structure</button>
+                    <button class="tab-btn" data-tab="profile">Profile</button>
+                    <button class="tab-btn" data-tab="display">Display</button>
+                    <button class="tab-btn" data-tab="internals">Internals</button>
+                    <button class="tab-btn" data-tab="controls">Controls</button>
+                </div>
+
+                <div class="tab-content active" id="tab-structure">
+                    <div class="control-group">
+                        <label for="param-width">Width <span data-param-value="width"></span></label>
+                        <input type="range" id="param-width" data-param="width" min="420" max="1000" step="10" value="650">
+                    </div>
+                    <div class="control-group">
+                        <label for="param-height">Height <span data-param-value="height"></span></label>
+                        <input type="range" id="param-height" data-param="height" min="650" max="2200" step="10" value="1700">
+                    </div>
+                    <div class="control-group">
+                        <label for="param-depth">Depth <span data-param-value="depth"></span></label>
+                        <input type="range" id="param-depth" data-param="depth" min="420" max="1000" step="10" value="600">
+                    </div>
+                    <div class="control-group">
+                        <label for="param-thickness">Sheet Thickness <span data-param-value="thickness"></span></label>
+                        <input type="range" id="param-thickness" data-param="thickness" min="9" max="30" step="1" value="18">
+                    </div>
+                    <div class="control-group">
+                        <label for="param-toe-kick-height">Toe Kick Height <span data-param-value="toeKickHeight"></span></label>
+                        <input type="range" id="param-toe-kick-height" data-param="toeKickHeight" min="20" max="180" step="5" value="55">
+                    </div>
+                    <div class="control-group">
+                        <label for="param-toe-kick-inset">Toe Kick Inset <span data-param-value="toeKickInset"></span></label>
+                        <input type="range" id="param-toe-kick-inset" data-param="toeKickInset" min="20" max="180" step="5" value="70">
+                    </div>
+                </div>
+
+                <div class="tab-content" id="tab-profile">
+                    <div class="control-group">
+                        <label for="param-cp-height">Control Height <span data-param-value="cpHeight"></span></label>
+                        <input type="range" id="param-cp-height" data-param="cpHeight" min="180" max="1200" step="10" value="950">
+                    </div>
+                    <div class="control-group">
+                        <label for="param-cp-depth">Control Depth <span data-param-value="cpDepth"></span></label>
+                        <input type="range" id="param-cp-depth" data-param="cpDepth" min="180" max="420" step="5" value="280">
+                    </div>
+                    <div class="control-group">
+                        <label for="param-cp-angle">Control Angle <span data-param-value="cpAngle"></span></label>
+                        <input type="range" id="param-cp-angle" data-param="cpAngle" min="-10" max="25" step="1" value="5">
+                    </div>
+                    <div class="control-group">
+                        <label for="param-cp-overhang">Control Overhang <span data-param-value="cpOverhang"></span></label>
+                        <input type="range" id="param-cp-overhang" data-param="cpOverhang" min="-40" max="120" step="5" value="0">
+                    </div>
+                    <div class="control-group">
+                        <label for="param-front-apron-drop">Front Apron Drop <span data-param-value="frontApronDrop"></span></label>
+                        <input type="range" id="param-front-apron-drop" data-param="frontApronDrop" min="60" max="220" step="5" value="125">
+                    </div>
+                    <section class="advanced-feature-card guided-advanced" aria-labelledby="side-profile-feature-title">
+                        <div class="advanced-feature-heading">
+                            <div>
+                                <span class="feature-kicker">Advanced shape tool</span>
+                                <h3 id="side-profile-feature-title">Decorative side profile</h3>
+                            </div>
+                        </div>
+                        <p>Add curved flourishes to either outer wall while the load-bearing cabinet envelope stays protected.</p>
+                        <button id="btn-edit-side-profile" class="btn btn-secondary" type="button">Open profile editor</button>
+                    </section>
+                </div>
+
+                <div class="tab-content" id="tab-display">
+                    <div class="control-group">
+                        <label for="param-monitor-angle">Monitor Tilt <span data-param-value="monitorAngle"></span></label>
+                        <input type="range" id="param-monitor-angle" data-param="monitorAngle" min="0" max="40" step="1" value="15">
+                    </div>
+                    <div class="control-group">
+                        <label for="param-bezel-depth">Bezel Recess <span data-param-value="bezelDepth"></span></label>
+                        <input type="range" id="param-bezel-depth" data-param="bezelDepth" min="20" max="260" step="5" value="100">
+                    </div>
+                    <div class="control-group">
+                        <label for="param-screen-width">Screen Width <span data-param-value="screenWidth"></span></label>
+                        <input type="range" id="param-screen-width" data-param="screenWidth" min="250" max="760" step="10" value="470">
+                    </div>
+                    <div class="control-group">
+                        <label for="param-screen-height">Screen Height <span data-param-value="screenHeight"></span></label>
+                        <input type="range" id="param-screen-height" data-param="screenHeight" min="160" max="460" step="10" value="270">
+                    </div>
+                    <div class="control-group">
+                        <label for="param-screen-margin">Screen Margin <span data-param-value="screenBezelMargin"></span></label>
+                        <input type="range" id="param-screen-margin" data-param="screenBezelMargin" min="10" max="90" step="5" value="35">
+                    </div>
+                    <fieldset class="control-subsection">
+                        <legend>Screen Frame</legend>
+                        <label class="check-row">
+                            <input type="checkbox" data-param="screenFrameEnabled" checked>
+                            <span>Include screen frame</span>
+                        </label>
+                        <div class="control-group">
+                            <label for="param-screen-frame-bezel">Frame Bezel <span data-param-value="screenFrameBezel"></span></label>
+                            <input type="range" id="param-screen-frame-bezel" data-param="screenFrameBezel" min="8" max="90" step="1" value="34">
+                        </div>
+                        <div class="control-group">
+                            <label for="param-screen-frame-depth">Frame Depth <span data-param-value="screenFrameDepth"></span></label>
+                            <input type="range" id="param-screen-frame-depth" data-param="screenFrameDepth" min="1" max="40" step="1" value="12">
+                        </div>
+                        <div class="control-group">
+                            <label for="param-screen-frame-clearance">Frame Clearance <span data-param-value="screenFrameClearance"></span></label>
+                            <input type="range" id="param-screen-frame-clearance" data-param="screenFrameClearance" min="0" max="40" step="1" value="8">
+                        </div>
+                        <div class="control-group">
+                            <label for="param-monitor-cable-port-width">Monitor Cable Port W <span data-param-value="monitorCablePortWidth"></span></label>
+                            <input type="range" id="param-monitor-cable-port-width" data-param="monitorCablePortWidth" min="30" max="220" step="5" value="90">
+                        </div>
+                        <div class="control-group">
+                            <label for="param-monitor-cable-port-height">Monitor Cable Port H <span data-param-value="monitorCablePortHeight"></span></label>
+                            <input type="range" id="param-monitor-cable-port-height" data-param="monitorCablePortHeight" min="20" max="140" step="5" value="55">
+                        </div>
+                    </fieldset>
+                    <div class="control-group">
+                        <label for="param-marquee-height">Marquee Height <span data-param-value="marqueeHeight"></span></label>
+                        <input type="range" id="param-marquee-height" data-param="marqueeHeight" min="90" max="320" step="10" value="180">
+                    </div>
+                    <div class="control-group">
+                        <label for="param-marquee-depth">Top Cap Depth <span data-param-value="marqueeDepth"></span></label>
+                        <input type="range" id="param-marquee-depth" data-param="marqueeDepth" min="90" max="380" step="10" value="220">
+                    </div>
+                    <div class="control-group">
+                        <label for="param-marquee-inset">Marquee Inset <span data-param-value="marqueeFaceInset"></span></label>
+                        <input type="range" id="param-marquee-inset" data-param="marqueeFaceInset" min="0" max="160" step="5" value="50">
+                    </div>
+                    <div class="control-group">
+                        <label for="param-marquee-lean">Marquee Lean <span data-param-value="marqueeLean"></span></label>
+                        <input type="range" id="param-marquee-lean" data-param="marqueeLean" min="-40" max="100" step="5" value="20">
+                    </div>
+                </div>
+
+                <div class="tab-content" id="tab-internals">
+                    <fieldset class="control-subsection">
+                        <legend>Control Support</legend>
+                        <label class="check-row">
+                            <input type="checkbox" data-param="controlSupportEnabled" checked>
+                            <span>Include support brace</span>
+                        </label>
+                        <div class="control-group">
+                            <label for="param-control-cable-port-width">Cable Port W <span data-param-value="controlCablePortWidth"></span></label>
+                            <input type="range" id="param-control-cable-port-width" data-param="controlCablePortWidth" min="30" max="220" step="5" value="80">
+                        </div>
+                        <div class="control-group">
+                            <label for="param-control-cable-port-height">Cable Port H <span data-param-value="controlCablePortHeight"></span></label>
+                            <input type="range" id="param-control-cable-port-height" data-param="controlCablePortHeight" min="20" max="140" step="5" value="45">
+                        </div>
+                        <div class="control-group">
+                            <label for="param-control-cable-port-offset">Cable Port Offset <span data-param-value="controlCablePortOffset"></span></label>
+                            <input type="range" id="param-control-cable-port-offset" data-param="controlCablePortOffset" min="-220" max="220" step="5" value="0">
+                        </div>
+                        <label class="check-row">
+                            <input type="checkbox" data-param="controlRiserEnabled" checked>
+                            <span>Include full-profile load supports</span>
+                        </label>
+                        <div class="control-group">
+                            <label for="param-control-profile-support-count">Support Count <span data-param-value="controlProfileSupportCount"></span></label>
+                            <input type="range" id="param-control-profile-support-count" data-param="controlProfileSupportCount" min="1" max="2" step="1" value="1">
+                        </div>
+                        <div class="control-group">
+                            <label for="param-control-profile-support-spacing">Support Spacing <span data-param-value="controlProfileSupportSpacing"></span></label>
+                            <input type="range" id="param-control-profile-support-spacing" data-param="controlProfileSupportSpacing" min="80" max="900" step="10" value="240">
+                        </div>
+                        <div class="control-group">
+                            <label for="param-control-riser-port-width">Support Port W <span data-param-value="controlRiserCablePortWidth"></span></label>
+                            <input type="range" id="param-control-riser-port-width" data-param="controlRiserCablePortWidth" min="30" max="220" step="5" value="64">
+                        </div>
+                        <div class="control-group">
+                            <label for="param-control-riser-port-height">Support Port H <span data-param-value="controlRiserCablePortHeight"></span></label>
+                            <input type="range" id="param-control-riser-port-height" data-param="controlRiserCablePortHeight" min="12" max="100" step="2" value="40">
+                        </div>
+                        <div class="control-group">
+                            <label for="param-control-riser-port-offset">Support Port Offset <span data-param-value="controlRiserCablePortOffset"></span></label>
+                            <input type="range" id="param-control-riser-port-offset" data-param="controlRiserCablePortOffset" min="-120" max="120" step="5" value="0">
+                        </div>
+                    </fieldset>
+                    <fieldset class="control-subsection">
+                        <legend>Display Bottom Support</legend>
+                        <label class="check-row">
+                            <input type="checkbox" data-param="displaySupportEnabled" checked>
+                            <span>Connect display bottom to rear panel</span>
+                        </label>
+                        <div class="control-group">
+                            <label for="param-display-cable-port-width">Cable Port W <span data-param-value="displayCablePortWidth"></span></label>
+                            <input type="range" id="param-display-cable-port-width" data-param="displayCablePortWidth" min="30" max="220" step="5" value="90">
+                        </div>
+                        <div class="control-group">
+                            <label for="param-display-cable-port-height">Cable Port H <span data-param-value="displayCablePortHeight"></span></label>
+                            <input type="range" id="param-display-cable-port-height" data-param="displayCablePortHeight" min="20" max="140" step="5" value="45">
+                        </div>
+                        <div class="control-group">
+                            <label for="param-display-cable-port-offset">Cable Port Offset <span data-param-value="displayCablePortOffset"></span></label>
+                            <input type="range" id="param-display-cable-port-offset" data-param="displayCablePortOffset" min="-220" max="220" step="5" value="0">
+                        </div>
+                    </fieldset>
+                    <fieldset class="control-subsection">
+                        <legend>Header Support</legend>
+                        <label class="check-row">
+                            <input type="checkbox" data-param="headerSupportEnabled" checked>
+                            <span>Include header brace</span>
+                        </label>
+                        <div class="control-group">
+                            <label for="param-monitor-cable-port-offset">Cable Port Offset <span data-param-value="monitorCablePortOffset"></span></label>
+                            <input type="range" id="param-monitor-cable-port-offset" data-param="monitorCablePortOffset" min="-220" max="220" step="5" value="0">
+                        </div>
+                    </fieldset>
+                    <fieldset class="control-subsection">
+                        <legend>Rear Door</legend>
+                        <label class="check-row">
+                            <input type="checkbox" data-param="backDoorEnabled" checked>
+                            <span>Include rear service door</span>
+                        </label>
+                        <div class="control-group">
+                            <label for="param-back-door-width">Door Width <span data-param-value="backDoorWidth"></span></label>
+                            <input type="range" id="param-back-door-width" data-param="backDoorWidth" min="120" max="560" step="10" value="300">
+                        </div>
+                        <div class="control-group">
+                            <label for="param-back-door-height">Door Height <span data-param-value="backDoorHeight"></span></label>
+                            <input type="range" id="param-back-door-height" data-param="backDoorHeight" min="160" max="900" step="10" value="520">
+                        </div>
+                        <div class="control-group">
+                            <label for="param-back-door-bottom-offset">Bottom Offset <span data-param-value="backDoorBottomOffset"></span></label>
+                            <input type="range" id="param-back-door-bottom-offset" data-param="backDoorBottomOffset" min="0" max="320" step="10" value="90">
+                        </div>
+                    </fieldset>
+                    <fieldset class="control-subsection">
+                        <legend>Machine Shelf</legend>
+                        <label class="check-row">
+                            <input type="checkbox" data-param="machineShelfEnabled" checked>
+                            <span>Include raised shelf</span>
+                        </label>
+                        <div class="control-group">
+                            <label for="param-machine-shelf-height">Shelf Height <span data-param-value="machineShelfHeight"></span></label>
+                            <input type="range" id="param-machine-shelf-height" data-param="machineShelfHeight" min="50" max="360" step="5" value="140">
+                        </div>
+                        <div class="control-group">
+                            <label for="param-machine-cable-port-width">Cable Port W <span data-param-value="machineCablePortWidth"></span></label>
+                            <input type="range" id="param-machine-cable-port-width" data-param="machineCablePortWidth" min="30" max="220" step="5" value="80">
+                        </div>
+                        <div class="control-group">
+                            <label for="param-machine-cable-port-height">Cable Port H <span data-param-value="machineCablePortHeight"></span></label>
+                            <input type="range" id="param-machine-cable-port-height" data-param="machineCablePortHeight" min="20" max="140" step="5" value="45">
+                        </div>
+                        <div class="control-group">
+                            <label for="param-machine-cable-port-offset">Cable Port Offset <span data-param-value="machineCablePortOffset"></span></label>
+                            <input type="range" id="param-machine-cable-port-offset" data-param="machineCablePortOffset" min="-220" max="220" step="5" value="0">
+                        </div>
+                    </fieldset>
+                </div>
+
+                <div class="tab-content" id="tab-controls">
+                    <fieldset class="control-subsection">
+                        <legend>Control Deck</legend>
+                        <label class="check-row">
+                            <input type="checkbox" data-control-param="deck.enabled" checked>
+                            <span>Include deck controls</span>
+                        </label>
+                        <label class="check-row">
+                            <input type="checkbox" data-control-param="deck.joystickEnabled" checked>
+                            <span>Include joysticks</span>
+                        </label>
+                        <label class="check-row">
+                            <input type="checkbox" data-control-param="deck.showLabels" checked>
+                            <span>Show deck labels</span>
+                        </label>
+                        <div class="control-group">
+                            <label for="control-deck-players">Players <span data-control-value="deck.players"></span></label>
+                            <input id="control-deck-players" type="range" data-control-param="deck.players" min="1" max="4" step="1" value="2">
+                        </div>
+                        <div class="control-group">
+                            <label for="control-deck-buttons-per-player">Buttons / Player <span data-control-value="deck.buttonsPerPlayer"></span></label>
+                            <input id="control-deck-buttons-per-player" type="range" data-control-param="deck.buttonsPerPlayer" min="1" max="8" step="1" value="6">
+                        </div>
+                        <div class="control-group">
+                            <label for="control-deck-button-rows">Button Rows <span data-control-value="deck.buttonRows"></span></label>
+                            <input id="control-deck-button-rows" type="range" data-control-param="deck.buttonRows" min="1" max="3" step="1" value="2">
+                        </div>
+                        <label class="text-control">
+                            <span>Layout Style</span>
+                            <select class="select-control" data-control-param="deck.layoutStyle">
+                                <option value="staggered">staggered</option>
+                                <option value="grid">grid</option>
+                                <option value="vee">vee</option>
+                                <option value="custom">custom</option>
+                            </select>
+                        </label>
+                        <div class="layout-style-cards" id="deck-layout-style-cards">
+                            <button type="button" class="layout-style-card" data-layout-style="staggered" title="staggered">
+                                <span class="layout-mini layout-mini-staggered" aria-hidden="true">
+                                    <i></i><i></i><i></i><i></i><i></i><i></i>
+                                </span>
+                                <span>staggered</span>
+                            </button>
+                            <button type="button" class="layout-style-card" data-layout-style="grid" title="grid">
+                                <span class="layout-mini layout-mini-grid" aria-hidden="true">
+                                    <i></i><i></i><i></i><i></i><i></i><i></i>
+                                </span>
+                                <span>grid</span>
+                            </button>
+                            <button type="button" class="layout-style-card" data-layout-style="vee" title="vee">
+                                <span class="layout-mini layout-mini-vee" aria-hidden="true">
+                                    <i></i><i></i><i></i><i></i><i></i><i></i>
+                                </span>
+                                <span>vee</span>
+                            </button>
+                            <button type="button" class="layout-style-card" data-layout-style="custom" title="custom">
+                                <span class="layout-mini layout-mini-custom" aria-hidden="true">
+                                    <i></i><i></i><i></i><i></i><i></i><i></i>
+                                </span>
+                                <span>custom</span>
+                            </button>
+                        </div>
+                        <div class="layout-editor" id="deck-layout-editor">
+                            <div class="layout-editor-stage" id="deck-layout-stage"></div>
+                            <button type="button" id="btn-reset-layout" class="btn btn-secondary btn-sm">Reset Layout</button>
+                        </div>
+                        <label class="text-control">
+                            <span>Player Axis</span>
+                            <select class="select-control" data-control-param="deck.groupOrientation">
+                                <option value="across">across width</option>
+                                <option value="frontBack">front/back</option>
+                            </select>
+                        </label>
+                        <div class="control-group">
+                            <label for="control-deck-button-diameter">Button Diameter <span data-control-value="deck.buttonDiameter"></span></label>
+                            <input id="control-deck-button-diameter" type="range" data-control-param="deck.buttonDiameter" min="18" max="44" step="1" value="30">
+                        </div>
+                        <div class="control-group">
+                            <label for="control-deck-button-spacing-x">Button X Spacing <span data-control-value="deck.buttonSpacingX"></span></label>
+                            <input id="control-deck-button-spacing-x" type="range" data-control-param="deck.buttonSpacingX" min="20" max="90" step="1" value="42">
+                        </div>
+                        <div class="control-group">
+                            <label for="control-deck-button-spacing-y">Button Y Spacing <span data-control-value="deck.buttonSpacingY"></span></label>
+                            <input id="control-deck-button-spacing-y" type="range" data-control-param="deck.buttonSpacingY" min="20" max="90" step="1" value="42">
+                        </div>
+                        <div class="control-group">
+                            <label for="control-deck-player-spacing">Player Spacing <span data-control-value="deck.groupSpacing"></span></label>
+                            <input id="control-deck-player-spacing" type="range" data-control-param="deck.groupSpacing" min="80" max="420" step="5" value="275">
+                        </div>
+                        <div class="control-group">
+                            <label for="control-deck-group-rotation">Group Rotation <span data-control-value="deck.groupRotation"></span></label>
+                            <input id="control-deck-group-rotation" type="range" data-control-param="deck.groupRotation" min="-35" max="35" step="1" value="0">
+                        </div>
+                        <div class="control-group">
+                            <label for="control-deck-x">Deck X <span data-control-value="deck.deckX"></span></label>
+                            <input id="control-deck-x" type="range" data-control-param="deck.deckX" min="-120" max="120" step="5" value="10">
+                        </div>
+                        <div class="control-group">
+                            <label for="control-deck-y">Deck Y <span data-control-value="deck.deckY"></span></label>
+                            <input id="control-deck-y" type="range" data-control-param="deck.deckY" min="-120" max="120" step="5" value="0">
+                        </div>
+                        <div class="control-group">
+                            <label for="control-deck-joystick-diameter">Joystick Diameter <span data-control-value="deck.joystickDiameter"></span></label>
+                            <input id="control-deck-joystick-diameter" type="range" data-control-param="deck.joystickDiameter" min="22" max="58" step="1" value="38">
+                        </div>
+                        <div class="control-group">
+                            <label for="control-deck-joystick-gap">Joystick Gap <span data-control-value="deck.joystickGap"></span></label>
+                            <input id="control-deck-joystick-gap" type="range" data-control-param="deck.joystickGap" min="36" max="150" step="1" value="90">
+                        </div>
+                        <label class="text-control">
+                            <span>Deck Labels</span>
+                            <input type="text" data-control-param="deck.labels" value="A,B,C,D,E,F">
+                        </label>
+                        <div class="chip-label" id="deck-button-colour-label">Button Color</div>
+                        <div class="color-chip-grid compact" data-control-color-path="deck.buttonColor" role="group" aria-labelledby="deck-button-colour-label"></div>
+                        <div class="chip-label" id="deck-joystick-colour-label">Joystick Color</div>
+                        <div class="color-chip-grid compact" data-control-color-path="deck.joystickColor" role="group" aria-labelledby="deck-joystick-colour-label"></div>
+                    </fieldset>
+
+                    <fieldset class="control-subsection">
+                        <legend>Front Apron</legend>
+                        <label class="check-row">
+                            <input type="checkbox" data-control-param="apron.enabled" checked>
+                            <span>Include start buttons</span>
+                        </label>
+                        <label class="check-row">
+                            <input type="checkbox" data-control-param="apron.showLabels" checked>
+                            <span>Show apron labels</span>
+                        </label>
+                        <div class="control-group">
+                            <label for="control-apron-buttons">Start Buttons <span data-control-value="apron.buttons"></span></label>
+                            <input id="control-apron-buttons" type="range" data-control-param="apron.buttons" min="1" max="4" step="1" value="2">
+                        </div>
+                        <div class="control-group">
+                            <label for="control-apron-button-diameter">Start Diameter <span data-control-value="apron.buttonDiameter"></span></label>
+                            <input id="control-apron-button-diameter" type="range" data-control-param="apron.buttonDiameter" min="16" max="44" step="1" value="24">
+                        </div>
+                        <div class="control-group">
+                            <label for="control-apron-button-spacing">Start Spacing <span data-control-value="apron.buttonSpacing"></span></label>
+                            <input id="control-apron-button-spacing" type="range" data-control-param="apron.buttonSpacing" min="36" max="180" step="1" value="86">
+                        </div>
+                        <label class="text-control">
+                            <span>Start Axis</span>
+                            <select class="select-control" data-control-param="apron.orientation">
+                                <option value="horizontal">across width</option>
+                                <option value="vertical">vertical</option>
+                            </select>
+                        </label>
+                        <div class="control-group">
+                            <label for="control-apron-x">Apron X <span data-control-value="apron.apronX"></span></label>
+                            <input id="control-apron-x" type="range" data-control-param="apron.apronX" min="-100" max="100" step="5" value="0">
+                        </div>
+                        <div class="control-group">
+                            <label for="control-apron-y">Apron Y <span data-control-value="apron.apronY"></span></label>
+                            <input id="control-apron-y" type="range" data-control-param="apron.apronY" min="-160" max="160" step="5" value="0">
+                        </div>
+                        <label class="text-control">
+                            <span>Apron Labels</span>
+                            <input type="text" data-control-param="apron.labels" value="1P,2P">
+                        </label>
+                        <div class="chip-label" id="apron-button-colour-label">Start Button Color</div>
+                        <div class="color-chip-grid compact" data-control-color-path="apron.buttonColor" role="group" aria-labelledby="apron-button-colour-label"></div>
+                    </fieldset>
+                </div>
+            </section>
+        </aside>
+
+        <aside class="sidebar sidebar-right" aria-label="Component and fabrication inspector">
+            <div class="inspector-tabs" role="tablist" aria-label="Inspector view">
+                <button id="inspector-tab-part" class="inspector-tab active" type="button" role="tab" aria-selected="true" data-inspector-view="part">Part</button>
+                <button id="inspector-tab-checks" class="inspector-tab" type="button" role="tab" aria-selected="false" data-inspector-view="checks">Checks</button>
+                <button id="inspector-tab-scene" class="inspector-tab" type="button" role="tab" aria-selected="false" data-inspector-view="scene">Scene</button>
+            </div>
+            <section class="sidebar-section scene-visibility-section" aria-labelledby="scene-visibility-heading" data-inspector-panel="scene" hidden>
+                <h2 id="scene-visibility-heading">Scene visibility</h2>
+                <details class="scene-visibility-disclosure">
+                    <summary>Show scene hierarchy <span>Viewport only</span></summary>
+                    <div class="scene-visibility-panel">
+                        <p class="section-hint" id="scene-visibility-help">These controls change only the 3D viewport. Fabrication inclusion remains separate in the selected Component controls.</p>
+                        <div id="scene-visibility-tree" class="scene-visibility-tree" aria-label="Scene element hierarchy" aria-describedby="scene-visibility-help"></div>
+                    </div>
+                </details>
+            </section>
+
+            <section class="sidebar-section" data-inspector-panel="part">
+                <h2>Component</h2>
+                <section id="component-material-editor" class="component-material-editor" aria-labelledby="component-material-title" hidden>
+                    <div class="component-material-heading">
+                        <div>
+                            <h3 id="component-material-title">Material and stock</h3>
+                            <p>Assign measured material here, then manage full stock sheets and costs in Sheets.</p>
+                        </div>
+                    </div>
+                    <label class="text-control" for="component-edit-scope">
+                        <span>Apply changes to</span>
+                        <select id="component-edit-scope" class="select-control">
+                            <option value="selected">Selected panel</option>
+                            <option value="structural">All structural panels</option>
+                            <option value="shell">All shell panels</option>
+                            <option value="all">All panels</option>
+                        </select>
+                    </label>
+                    <p id="component-scope-preview" class="scope-preview" role="status" aria-live="polite"></p>
+                    <label class="text-control" for="component-material-select">
+                        <span>Material and measured thickness</span>
+                        <select id="component-material-select" class="select-control"></select>
+                    </label>
+                    <div id="component-material-summary" class="component-material-summary" aria-live="polite"></div>
+                    <div class="component-material-actions">
+                        <button id="btn-manage-materials" class="btn btn-secondary btn-sm" type="button">Manage stock</button>
+                        <button id="btn-open-selected-sheet" class="btn btn-secondary btn-sm" type="button">Find on sheet</button>
+                    </div>
+                </section>
+                <div class="component-readout" id="component-readout"></div>
+                <div class="component-tuning" id="component-tuning" hidden>
+                    <label class="check-row component-visible-row">
+                        <input type="checkbox" id="component-visible-toggle" checked>
+                        <span>Show in viewport</span>
+                    </label>
+                    <label class="check-row component-included-row">
+                        <input type="checkbox" id="component-included-toggle" checked>
+                        <span>Include in fabrication</span>
+                    </label>
+                    <div>
+                        <div class="chip-label" id="panel-colour-label">Panel Color</div>
+                        <div class="color-chip-grid" id="component-color-palette" role="group" aria-labelledby="panel-colour-label"></div>
+                    </div>
+                    <div class="control-group compact-control">
+                        <label for="component-offset">Offset <span data-component-value="offset"></span></label>
+                        <input type="range" id="component-offset" data-component-param="offset" min="-80" max="80" step="1" value="0">
+                    </div>
+                    <div class="control-group compact-control">
+                        <label for="component-length-delta">Length Delta <span data-component-value="lengthDelta"></span></label>
+                        <input type="range" id="component-length-delta" data-component-param="lengthDelta" min="-120" max="120" step="1" value="0">
+                    </div>
+                    <div class="control-group compact-control">
+                        <label for="component-width-delta">Width Delta <span data-component-value="widthDelta"></span></label>
+                        <input type="range" id="component-width-delta" data-component-param="widthDelta" min="-120" max="120" step="1" value="0">
+                    </div>
+                    <div class="control-group compact-control">
+                        <label for="component-thickness-delta">Thickness Delta <span data-component-value="thicknessDelta"></span></label>
+                        <input type="range" id="component-thickness-delta" data-component-param="thicknessDelta" min="-12" max="18" step="1" value="0">
+                    </div>
+                    <details class="advanced-component-editor">
+                        <summary>Advanced screw setup</summary>
+                        <div class="advanced-fastener-heading">
+                            <div>
+                                <strong>Screw group override</strong>
+                                <span>Applies to screws attached to the chosen panel group.</span>
+                            </div>
+                            <button id="btn-clear-fastener-group" class="btn btn-secondary btn-sm" type="button">Use project defaults</button>
+                        </div>
+                        <div id="component-fastener-group" class="advanced-fastener-grid">
+                            <label>Diameter (mm)<input type="number" data-fastener-group-param="diameterMm" min="1.5" max="12" step="0.5"></label>
+                            <label>Length (mm)<input type="number" data-fastener-group-param="lengthMm" min="8" max="180" step="1"></label>
+                            <label>Edge clearance (mm)<input type="number" data-fastener-group-param="edgeClearanceMm" min="0" max="180" step="1"></label>
+                            <label>Centre spacing (mm)<input type="number" data-fastener-group-param="minCenterSpacingMm" min="10" max="420" step="5"></label>
+                        </div>
+                        <div class="advanced-fastener-heading">
+                            <div>
+                                <strong>Individual screws</strong>
+                                <span>Override diameter or length without changing the rest of the group.</span>
+                            </div>
+                        </div>
+                        <div id="component-fastener-list" class="component-fastener-list"></div>
+                    </details>
+                    <button id="btn-reset-component" class="btn btn-secondary btn-sm">Reset Component</button>
+                </div>
+            </section>
+
+            <section class="sidebar-section" data-inspector-panel="checks" hidden>
+                <h2>Fabrication</h2>
+                <div class="component-readout" id="fabrication-summary" aria-live="polite"></div>
+            </section>
+
+            <section class="sidebar-section" data-inspector-panel="part">
+                <h2>Screws</h2>
+                <div class="component-tuning">
+                    <div class="control-group compact-control">
+                        <label for="param-screw-diameter">Shaft Diameter <span data-param-value="screwDiameter"></span></label>
+                        <input type="range" id="param-screw-diameter" data-param="screwDiameter" min="2" max="8" step="0.5" value="4">
+                    </div>
+                    <div class="control-group compact-control">
+                        <label for="param-screw-length">Length <span data-param-value="screwLength"></span></label>
+                        <input type="range" id="param-screw-length" data-param="screwLength" min="12" max="120" step="1" value="42">
+                    </div>
+                    <div class="control-group compact-control">
+                        <label for="param-screw-edge-clearance">Edge Clearance <span data-param-value="screwEdgeClearance"></span></label>
+                        <input type="range" id="param-screw-edge-clearance" data-param="screwEdgeClearance" min="0" max="90" step="1" value="24">
+                    </div>
+                    <div class="control-group compact-control">
+                        <label for="param-screw-min-spacing">Centre Spacing <span data-param-value="screwMinSpacing"></span></label>
+                        <input type="range" id="param-screw-min-spacing" data-param="screwMinSpacing" min="10" max="240" step="5" value="30">
+                    </div>
+                </div>
+            </section>
+
+            <section class="sidebar-section" data-inspector-panel="scene" hidden>
+                <h2>Panels</h2>
+                <label class="text-control panel-filter" for="panel-inventory-search">
+                    <span>Find a panel</span>
+                    <input id="panel-inventory-search" type="search" autocomplete="off" placeholder="Name, part ID, role...">
+                </label>
+                <p id="panel-inventory-status" class="section-hint" role="status" aria-live="polite"></p>
+                <div class="panel-list" id="panel-inventory" role="listbox" aria-label="Cabinet panels"></div>
+            </section>
+
+            <section class="sidebar-section" data-inspector-panel="part">
+                <h2>Artwork</h2>
+                <div class="decal-controls-box" id="decal-box">
+                    <div class="section-hint">No panel selected</div>
+                    <div id="decal-panel-active" hidden>
+                        <label class="decal-upload-label">
+                            <span>Upload PNG/JPEG</span>
+                            <input type="file" id="decal-file-input" accept="image/png, image/jpeg" class="decal-file-input accessible-file-input">
+                        </label>
+
+                        <div class="decal-list" id="active-decal-list"></div>
+
+                        <div id="decal-editing-sliders" hidden>
+                            <div class="control-group compact-control">
+                                <label for="decal-pos-x">Artwork X <span id="val-decal-pos-x">0%</span></label>
+                                <input type="range" id="decal-pos-x" min="-100" max="100" step="1" value="0">
+                            </div>
+                            <div class="control-group compact-control">
+                                <label for="decal-pos-y">Artwork Y <span id="val-decal-pos-y">0%</span></label>
+                                <input type="range" id="decal-pos-y" min="-100" max="100" step="1" value="0">
+                            </div>
+                            <div class="control-group compact-control">
+                                <label for="decal-scale">Artwork Scale <span id="val-decal-scale">50%</span></label>
+                                <input type="range" id="decal-scale" min="5" max="300" step="1" value="50">
+                            </div>
+                            <div class="control-group compact-control">
+                                <label for="decal-rotation">Artwork Rotation <span id="val-decal-rotation">0 deg</span></label>
+                                <input type="range" id="decal-rotation" min="0" max="360" step="1" value="0">
+                            </div>
+                            <button id="btn-delete-decal" class="btn btn-secondary btn-sm">Delete Artwork</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </aside>
+
+        <section class="app-controls" aria-label="Scale reference and assembly controls">
+            <div class="footer-control-panel">
+                <span class="panel-label">Scale Reference</span>
+                <div class="footer-controls-group">
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="toggle-dummy" checked>
+                        <span class="toggle-slider"></span>
+                        <span class="toggle-text">Dummy</span>
+                    </label>
+                    <label for="mannequin-preset">Preset</label>
+                    <select id="mannequin-preset" class="select-control">
+                        <option value="child_12">Child 12</option>
+                        <option value="adult_woman_small">Adult Woman S</option>
+                        <option value="adult_woman_average">Adult Woman M</option>
+                        <option value="adult_average" selected>Adult Average</option>
+                        <option value="adult_man_average">Adult Man M</option>
+                        <option value="tall_adult">Tall Adult</option>
+                        <option value="custom">Custom</option>
+                    </select>
+                    <div class="slider-inline">
+                        <label for="param-dummy-height">Height</label>
+                        <input type="range" id="param-dummy-height" data-param="dummyHeight" min="1350" max="2050" step="10" value="1750">
+                        <span data-param-value="dummyHeight"></span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="footer-control-panel">
+                <span class="panel-label">Assembly</span>
+                <div class="footer-controls-group">
+                    <div class="slider-inline">
+                        <label for="param-exploded">Explode</label>
+                        <input type="range" id="param-exploded" data-param="exploded" min="0" max="100" step="1" value="0">
+                        <span data-param-value="exploded"></span>
+                    </div>
+                    <div class="btn-group-toggle">
+                        <button id="btn-toggle-grid" class="btn-toggle active">Grid</button>
+                        <button id="btn-toggle-edges" class="btn-toggle active">Edges</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="recovery-banner" class="recovery-banner" role="region" aria-live="assertive" aria-atomic="true" aria-labelledby="recovery-title" hidden>
+            <div>
+                <strong id="recovery-title">Unsaved work is available</strong>
+                <span id="recovery-detail">Restore the last autosave?</span>
+            </div>
+            <button id="btn-restore-recovery" class="btn btn-primary btn-sm" type="button">Restore</button>
+            <button id="btn-discard-recovery" class="btn btn-secondary btn-sm" type="button">Discard</button>
+        </section>
+
+        <dialog id="maker-workspace-dialog" class="maker-workspace-dialog" aria-labelledby="maker-workspace-title" aria-describedby="maker-workspace-description">
+            <div class="dialog-header maker-dialog-header">
+                <div>
+                    <span id="maker-workspace-kicker" class="export-kicker">Maker workflow</span>
+                    <h2 id="maker-workspace-title">Hardware</h2>
+                    <p id="maker-workspace-description">Review the real arcade hardware inferred from the current design.</p>
+                    <div id="maker-stage-context" class="maker-stage-context" aria-live="polite" aria-atomic="true">
+                        <span id="maker-stage-purpose">Purpose: confirm that real hardware fits the current design.</span>
+                        <span id="maker-stage-definition">Done when: required items and findings have been reviewed.</span>
+                        <span id="maker-stage-state">State: not confirmed.</span>
+                    </div>
+                    <ol id="maker-dialog-progress" class="maker-dialog-progress" aria-label="Maker workflow progress">
+                        <li data-maker-dialog-step="design">1. Design</li>
+                        <li data-maker-dialog-step="hardware">2. Hardware</li>
+                        <li data-maker-dialog-step="review">3. Review</li>
+                        <li data-maker-dialog-step="sheets">4. Sheets</li>
+                        <li data-maker-dialog-step="export">5. Export</li>
+                    </ol>
+                </div>
+                <button id="btn-close-maker-workspace" class="dialog-close" type="button" aria-label="Close maker workspace">Close</button>
+            </div>
+
+            <div class="maker-dialog-body">
+                <section id="maker-hardware-view" class="maker-workspace-view" data-maker-view="hardware">
+                    <div class="maker-intro-card">
+                        <div>
+                            <h3>Hardware and component plan</h3>
+                            <p>Check the authoritative control layout, review fitted hardware, and add purchasing costs or BOM-only electronics. Physical placement remains in Design.</p>
+                        </div>
+                        <div class="maker-inline-actions">
+                            <button id="btn-focus-control-design" class="btn btn-secondary" type="button">Back to Controls editor</button>
+                            <button id="btn-hardware-continue" class="btn btn-primary" type="button">Confirm hardware &amp; continue</button>
+                        </div>
+                    </div>
+                    <p id="hardware-stage-prerequisite" class="stage-prerequisite" role="status"></p>
+                    <section class="hardware-layout-reference" aria-labelledby="hardware-layout-reference-title">
+                        <div class="maker-section-heading">
+                            <div>
+                                <h3 id="hardware-layout-reference-title">Control layout reference</h3>
+                                <p>Read-only machining positions for every deck and apron control in this cabinet.</p>
+                            </div>
+                        </div>
+                        <div id="hardware-control-layout-preview" class="hardware-control-layout-preview"></div>
+                    </section>
+                    <div class="maker-filter-row">
+                        <label class="maker-search-field" for="hardware-library-search">
+                            <span>Filter definitions</span>
+                            <input id="hardware-library-search" type="search" placeholder="Buttons, monitor, fan..." autocomplete="off">
+                        </label>
+                        <label class="btn btn-secondary maker-file-button">
+                            Import definitions
+                            <input id="hardware-definition-import" class="accessible-file-input" type="file" accept="application/json,.json" multiple>
+                        </label>
+                        <button id="btn-add-hardware-item" class="btn btn-secondary" type="button">Add BOM component</button>
+                    </div>
+                    <div id="hardware-import-status" class="inline-status" role="status" aria-live="polite"></div>
+                    <div class="maker-hardware-grid">
+                        <section class="maker-column" aria-labelledby="hardware-library-title">
+                            <h3 id="hardware-library-title">Reference definitions - not included automatically</h3>
+                            <div id="hardware-library-list" class="hardware-library-list"></div>
+                        </section>
+                        <section class="maker-column" aria-labelledby="hardware-schedule-title">
+                            <h3 id="hardware-schedule-title">Included in this build</h3>
+                            <div id="hardware-schedule-summary" class="maker-summary-strip" aria-live="polite"></div>
+                            <div id="hardware-current-schedule" class="hardware-current-schedule"></div>
+                            <div class="maker-section-heading additional-hardware-heading">
+                                <div>
+                                    <h3>Additional BOM components</h3>
+                                    <p>Add electronics, computer hardware, cables or other purchased items that do not create machining operations.</p>
+                                </div>
+                            </div>
+                            <div id="additional-hardware-list" class="additional-hardware-list"></div>
+                            <h3>Fit and keepout findings</h3>
+                            <div id="hardware-findings" class="maker-findings"></div>
+                        </section>
+                    </div>
+                </section>
+
+                <section id="maker-review-view" class="maker-workspace-view" data-maker-view="review" hidden>
+                    <div class="maker-intro-card">
+                        <div>
+                            <h3>Manufacturing review</h3>
+                            <p>Resolve blocking geometry and hardware findings, then confirm the design before stock planning.</p>
+                        </div>
+                        <div class="maker-inline-actions">
+                            <button id="btn-review-back" class="btn btn-secondary" type="button">Back to hardware</button>
+                            <button id="btn-review-continue" class="btn btn-primary" type="button">Confirm review &amp; continue</button>
+                        </div>
+                    </div>
+                    <p id="review-stage-prerequisite" class="stage-prerequisite" role="status"></p>
+                    <div id="maker-review-summary" class="maker-summary-strip" aria-live="polite"></div>
+                    <div id="maker-review-findings" class="maker-review-findings"></div>
+                </section>
+
+                <section id="maker-sheets-view" class="maker-workspace-view" data-maker-view="sheets" hidden>
+                    <div class="maker-intro-card">
+                        <div>
+                            <h3>Stock planning</h3>
+                            <p>Edit measured stock, assign it by part thickness, then generate ranked true-shape layouts. The selected validated layout is passed directly to the fabrication package.</p>
+                        </div>
+                        <div class="maker-inline-actions">
+                            <button id="btn-sheets-back" class="btn btn-secondary" type="button">Back to review</button>
+                            <button id="btn-add-material" class="btn btn-secondary" type="button">Add material</button>
+                            <button id="btn-regenerate-nest" class="btn btn-primary" type="button">Regenerate layouts</button>
+                            <button id="btn-cancel-nest" class="btn btn-secondary" type="button" hidden>Cancel generation</button>
+                            <button id="btn-sheets-continue" class="btn btn-primary" type="button">Confirm sheet plan &amp; continue</button>
+                        </div>
+                    </div>
+                    <p id="sheets-stage-prerequisite" class="stage-prerequisite" role="status"></p>
+                    <ol id="sheet-workflow-checklist" class="sheet-workflow-checklist" aria-label="Sheet planning steps">
+                        <li data-sheet-step="stock">1. Check stock</li>
+                        <li data-sheet-step="assign">2. Assign parts</li>
+                        <li data-sheet-step="generate">3. Generate</li>
+                        <li data-sheet-step="inspect">4. Inspect</li>
+                        <li data-sheet-step="confirm">5. Confirm</li>
+                    </ol>
+                    <div class="maker-sheet-layout">
+                        <section class="maker-column material-editor-column" aria-labelledby="material-profiles-title">
+                            <div class="maker-section-heading">
+                                <div>
+                                    <h3 id="material-profiles-title">Material and stock profiles</h3>
+                                    <p>Stock dimensions and measured thicknesses are entered in millimetres.</p>
+                                </div>
+                            </div>
+                            <div id="material-profile-list" class="material-profile-list"></div>
+                            <div class="part-material-section">
+                                <h3>Part assignments</h3>
+                                <p class="section-hint">Choose the stock profile used for each fabricated part.</p>
+                                <div id="part-material-assignment-list" class="part-material-assignment-list"></div>
+                            </div>
+                        </section>
+
+                        <section class="maker-column nesting-column" aria-labelledby="nesting-preview-title">
+                            <div class="maker-section-heading nesting-controls-heading">
+                                <div>
+                                    <h3 id="nesting-preview-title">Sheet layouts</h3>
+                                    <p id="nesting-generated-time">Generate layouts to begin.</p>
+                                </div>
+                                <label class="candidate-select-label" for="nesting-candidate-select">
+                                    <span>Ranked candidate</span>
+                                    <select id="nesting-candidate-select" class="select-control" disabled></select>
+                                </label>
+                            </div>
+                            <div id="nesting-validation-status" class="inline-status" role="status" aria-live="polite"></div>
+                            <div id="nesting-actionable-findings" class="nesting-actionable-findings"></div>
+                            <div id="nesting-summary" class="maker-summary-strip"></div>
+                            <div id="material-cost-breakdown" class="material-cost-breakdown"></div>
+                            <div class="nesting-preview-toolbar">
+                                <label for="nesting-sheet-select">Preview sheet</label>
+                                <select id="nesting-sheet-select" class="select-control" disabled></select>
+                                <span class="section-hint">Select a part below to edit its pinned position.</span>
+                            </div>
+                            <div id="nesting-svg-wrap" class="nesting-svg-wrap">
+                                <div class="nesting-empty">No sheet layout generated yet.</div>
+                            </div>
+                            <div id="nesting-placement-editor" class="nesting-placement-editor" hidden></div>
+                            <div id="nesting-sheet-list" class="nesting-sheet-list"></div>
+                        </section>
+                    </div>
+                </section>
+            </div>
+        </dialog>
+
+        <dialog id="project-tools-dialog" class="project-tools-dialog" aria-labelledby="project-tools-title" aria-describedby="project-tools-description">
+            <div class="dialog-header">
+                <div>
+                    <h2 id="project-tools-title">Projects and presets</h2>
+                    <p id="project-tools-description">Open recent desktop files or keep reusable design presets on this device.</p>
+                </div>
+                <button id="btn-close-project-tools" class="dialog-close" type="button" aria-label="Close project tools">Close</button>
+            </div>
+            <div class="project-tools-body">
+                <section aria-labelledby="recent-projects-title">
+                    <h3 id="recent-projects-title">Recent projects</h3>
+                    <div id="recent-project-list" class="recent-project-list" aria-live="polite"></div>
+                </section>
+                <section aria-labelledby="recoveries-title">
+                    <div class="section-heading-row">
+                        <h3 id="recoveries-title">Recoveries</h3>
+                        <button id="btn-refresh-recoveries" class="btn btn-secondary btn-sm" type="button">Refresh</button>
+                    </div>
+                    <p class="section-hint">Review independent autosaves. Restore opens a recovery without overwriting a named file.</p>
+                    <div id="recovery-record-list" class="recovery-record-list" aria-live="polite"></div>
+                </section>
+                <section aria-labelledby="user-presets-title">
+                    <h3 id="user-presets-title">User presets</h3>
+                    <form id="user-preset-form" class="user-preset-form">
+                        <label for="user-preset-name">Preset name</label>
+                        <input id="user-preset-name" type="text" maxlength="60" required placeholder="My workshop upright">
+                        <button class="btn btn-secondary" type="submit">Save current design</button>
+                    </form>
+                    <div id="user-preset-list" class="user-preset-list" aria-live="polite"></div>
+                </section>
+            </div>
+        </dialog>
+
+        <dialog id="export-dialog" class="export-dialog" aria-labelledby="export-dialog-title" aria-describedby="export-dialog-description">
+            <div class="dialog-header">
+                <div>
+                    <h2 id="export-dialog-title">Fabrication export</h2>
+                    <p id="export-dialog-description">Review manufacturing checks before creating machine-ready geometry.</p>
+                </div>
+                <button id="btn-close-export" class="dialog-close" type="button" aria-label="Close export dialog">Close</button>
+            </div>
+
+            <div id="export-preflight-summary" class="export-preflight-summary" aria-live="polite"></div>
+
+            <div class="export-options">
+                <section class="export-option">
+                    <div>
+                        <span class="export-kicker">Reference drawing</span>
+                        <h3>Annotated draft SVG</h3>
+                        <p>Includes labels and notes. Always available and clearly marked non-production when errors exist.</p>
+                    </div>
+                    <span id="draft-readiness" class="output-readiness available">Available</span>
+                    <button id="btn-export-draft" class="btn btn-secondary" type="button">Export draft SVG</button>
+                </section>
+
+                <section class="export-option production-option">
+                    <div>
+                        <span class="export-kicker">Machine geometry</span>
+                        <h3>Production SVG</h3>
+                        <p>Millimetre-native, precision contours with annotations and reference geometry removed.</p>
+                    </div>
+                    <label id="warning-ack-row" class="warning-ack" hidden>
+                        <input id="acknowledge-export-warnings" type="checkbox">
+                        <span>I reviewed the warnings and want to continue.</span>
+                    </label>
+                    <span id="production-readiness" class="output-readiness">Checking</span>
+                    <button id="btn-export-production" class="btn btn-primary" type="button">Export production SVG</button>
+                    <p id="production-block-reason" class="production-block-reason" hidden></p>
+                </section>
+
+                <section id="fabrication-pack-option" class="export-option fabrication-pack-option" hidden>
+                    <div>
+                        <span class="export-kicker">Workshop hand-off</span>
+                        <h3>Fabrication package</h3>
+                        <p>Project and fabrication manifests, drawings, schedules, labels, BOM and machine files in one package.</p>
+                    </div>
+                    <span id="package-readiness" class="output-readiness">Checking</span>
+                    <button id="btn-export-package" class="btn btn-primary" type="button">Export fabrication pack</button>
+                    <p id="package-block-reason" class="production-block-reason" hidden></p>
+                </section>
+            </div>
+            <section id="export-receipt" class="export-receipt" aria-labelledby="export-receipt-title" hidden>
+                <div>
+                    <span class="export-kicker">Export complete</span>
+                    <h3 id="export-receipt-title">File saved</h3>
+                    <p id="export-receipt-summary"></p>
+                    <dl id="export-receipt-details"></dl>
+                </div>
+                <div class="maker-inline-actions">
+                    <button id="btn-open-export-folder" class="btn btn-secondary" type="button" hidden>Open folder</button>
+                    <button id="btn-open-before-cut" class="btn btn-secondary" type="button">Before you cut</button>
+                </div>
+            </section>
+        </dialog>
+
+        <dialog id="help-dialog" class="help-dialog" aria-labelledby="help-dialog-title" aria-describedby="help-dialog-description">
+            <div class="dialog-header">
+                <div>
+                    <span class="export-kicker">Offline help</span>
+                    <h2 id="help-dialog-title">Help and learning</h2>
+                    <p id="help-dialog-description">Search settings, fabrication concepts, lessons, shortcuts and workshop guidance.</p>
+                </div>
+                <button id="btn-close-help" class="dialog-close" type="button" aria-label="Close help">Close</button>
+            </div>
+            <div class="help-layout">
+                <aside class="help-sidebar" aria-label="Help navigation">
+                    <label class="text-control" for="help-search">
+                        <span>Search help</span>
+                        <input id="help-search" type="search" autocomplete="off" placeholder="Apron, keepout, grain, warning...">
+                    </label>
+                    <div class="help-quick-actions">
+                        <button id="btn-start-first-cabinet" class="btn btn-primary" type="button" disabled aria-busy="true">Build my first cabinet</button>
+                        <button id="btn-tutorial" class="btn btn-secondary" type="button">Replay interface tour</button>
+                        <button id="btn-reset-learning" class="btn btn-secondary" type="button" disabled aria-busy="true">Reset learning progress</button>
+                    </div>
+                    <nav id="help-topic-list" class="help-topic-list" aria-label="Help topics"></nav>
+                </aside>
+                <article id="help-topic-content" class="help-topic-content" tabindex="-1">
+                    <span class="export-kicker">Getting started</span>
+                    <h3>Choose a help topic</h3>
+                    <p>Search by a setting name, common workshop term, or finding code.</p>
+                </article>
+            </div>
+            <footer class="help-footer">
+                <span>Cabinet Crafter 2.0.0</span>
+                <span>Copyright 2026 Peter Blenkharn</span>
+                <span>CumberlandQuail</span>
+                <span>Original Cabinet Crafter code: MIT License</span>
+                <span>Third-party components: see release notices</span>
+            </footer>
+        </dialog>
+
+        <dialog id="viewport-guide-dialog" class="compact-dialog" aria-labelledby="viewport-guide-title">
+            <div class="dialog-header">
+                <div>
+                    <h2 id="viewport-guide-title">3D viewport controls</h2>
+                    <p>Every viewport task also has a toolbar or Parts-list route.</p>
+                </div>
+                <button id="btn-close-viewport-guide" class="dialog-close" type="button" aria-label="Close 3D help">Close</button>
+            </div>
+            <dl class="shortcut-list">
+                <div><dt>Orbit</dt><dd>Drag, or use the arrow keys</dd></div>
+                <div><dt>Zoom</dt><dd>Mouse wheel, or Page Up and Page Down</dd></div>
+                <div><dt>Fit cabinet</dt><dd>Home, or choose Fit</dd></div>
+                <div><dt>Select a part</dt><dd>Choose it in 3D or from the Scene tab</dd></div>
+                <div><dt>Clear selection</dt><dd>Escape</dd></div>
+            </dl>
+        </dialog>
+
+        <dialog id="status-history-dialog" class="compact-dialog" aria-labelledby="status-history-title">
+            <div class="dialog-header">
+                <div>
+                    <h2 id="status-history-title">Status and notifications</h2>
+                    <p>Errors remain here until they are resolved or dismissed.</p>
+                </div>
+                <button class="dialog-close" type="button" data-status-close aria-label="Close status history">Close</button>
+            </div>
+            <p id="status-history-empty" class="empty-state">No notifications yet.</p>
+            <div id="status-history-list" class="status-history-list"></div>
+            <div class="dialog-footer-actions">
+                <button class="btn btn-secondary" type="button" data-status-clear>Clear resolved</button>
+            </div>
+        </dialog>
+
+        <dialog id="side-profile-dialog" class="side-profile-dialog" aria-labelledby="side-profile-editor-title" aria-describedby="side-profile-editor-description">
+            <div class="dialog-header side-profile-dialog-header">
+                <div>
+                    <span class="feature-kicker">Advanced shape tool</span>
+                    <h2 id="side-profile-editor-title">Decorative side profile</h2>
+                    <p id="side-profile-editor-description">Edit only the outer walls. The structural envelope and every internal joint remain unchanged.</p>
+                </div>
+                <button id="btn-close-side-profile" class="dialog-close" type="button" aria-label="Close side profile editor">Close</button>
+            </div>
+            <div class="side-profile-editor-layout">
+                <section class="side-profile-canvas-panel" aria-labelledby="side-profile-canvas-title">
+                    <div class="side-profile-canvas-heading">
+                        <div>
+                            <h3 id="side-profile-canvas-title">Side elevation</h3>
+                            <p>The solid outline and circular anchors are editable. The hatched structural envelope is locked.</p>
+                        </div>
+                        <div class="profile-view-controls" role="group" aria-label="Profile view zoom">
+                            <button id="btn-side-profile-zoom-out" class="btn btn-secondary btn-sm" type="button" aria-label="Zoom out">-</button>
+                            <button id="btn-side-profile-fit" class="btn btn-secondary btn-sm" type="button">Fit</button>
+                            <button id="btn-side-profile-zoom-in" class="btn btn-secondary btn-sm" type="button" aria-label="Zoom in">+</button>
+                            <span id="side-profile-zoom-label" class="feature-state">100%</span>
+                        </div>
+                    </div>
+                    <svg id="side-profile-editor-canvas" class="side-profile-editor-canvas" viewBox="0 0 800 700" role="application" tabindex="0" aria-label="Interactive side profile curve editor. Select anchors with Tab, move them with the arrow keys, and use Shift for ten millimetre steps.">
+                        <defs>
+                            <pattern id="structural-envelope-hatch" width="10" height="10" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+                                <line x1="0" y1="0" x2="0" y2="10" class="structural-hatch-line"></line>
+                            </pattern>
+                        </defs>
+                        <g id="side-profile-editor-stage"></g>
+                    </svg>
+                    <p id="side-profile-editor-status" class="side-profile-editor-status" role="status" aria-live="polite"></p>
+                </section>
+                <aside class="side-profile-tools" aria-label="Profile editor tools">
+                    <fieldset class="profile-tool-section">
+                        <legend>Profile scope</legend>
+                        <label class="check-row">
+                            <input id="side-profile-enabled" type="checkbox">
+                            <span>Use decorative profile</span>
+                        </label>
+                        <label class="check-row">
+                            <input id="side-profile-linked" type="checkbox" checked>
+                            <span>Keep left and right linked</span>
+                        </label>
+                        <label class="check-row">
+                            <input id="side-profile-snap" type="checkbox" checked>
+                            <span id="side-profile-snap-label">Snap pointer edits to 5 mm</span>
+                        </label>
+                        <label class="text-control" for="side-profile-target">
+                            <span>Edit side</span>
+                            <select id="side-profile-target">
+                                <option value="both">Both walls</option>
+                                <option value="left">Left wall</option>
+                                <option value="right">Right wall</option>
+                            </select>
+                        </label>
+                    </fieldset>
+                    <fieldset class="profile-tool-section">
+                        <legend>Selected anchor</legend>
+                        <label class="text-control" for="side-profile-anchor-list">
+                            <span>Anchor list</span>
+                            <select id="side-profile-anchor-list" size="4" aria-describedby="side-profile-selection-help"></select>
+                        </label>
+                        <p id="side-profile-selection-help" class="section-hint">Select a circular anchor in the drawing or choose one from this list.</p>
+                        <div class="profile-coordinate-grid">
+                            <label for="side-profile-point-x">X <span class="sr-only">coordinate</span></label>
+                            <input id="side-profile-point-x" type="number" step="1" inputmode="decimal" disabled>
+                            <span id="side-profile-point-x-unit">mm</span>
+                            <label for="side-profile-point-y">Y <span class="sr-only">coordinate</span></label>
+                            <input id="side-profile-point-y" type="number" step="1" inputmode="decimal" disabled>
+                            <span id="side-profile-point-y-unit">mm</span>
+                        </div>
+                        <label class="text-control" for="side-profile-point-mode">
+                            <span>Handle mode</span>
+                            <select id="side-profile-point-mode" disabled>
+                                <option value="corner">Corner</option>
+                                <option value="smooth">Smooth</option>
+                                <option value="symmetric">Symmetric</option>
+                            </select>
+                        </label>
+                        <details class="profile-handle-details">
+                            <summary>Exact handle coordinates</summary>
+                            <div class="profile-coordinate-grid profile-handle-grid">
+                                <label for="side-profile-in-x">In X</label>
+                                <input id="side-profile-in-x" type="number" step="1" inputmode="decimal" disabled>
+                                <span class="side-profile-coordinate-unit">mm</span>
+                                <label for="side-profile-in-y">In Y</label>
+                                <input id="side-profile-in-y" type="number" step="1" inputmode="decimal" disabled>
+                                <span class="side-profile-coordinate-unit">mm</span>
+                                <label for="side-profile-out-x">Out X</label>
+                                <input id="side-profile-out-x" type="number" step="1" inputmode="decimal" disabled>
+                                <span class="side-profile-coordinate-unit">mm</span>
+                                <label for="side-profile-out-y">Out Y</label>
+                                <input id="side-profile-out-y" type="number" step="1" inputmode="decimal" disabled>
+                                <span class="side-profile-coordinate-unit">mm</span>
+                            </div>
+                        </details>
+                        <div class="profile-tool-actions">
+                            <button id="btn-side-profile-undo" class="btn btn-secondary btn-sm" type="button" disabled>Undo</button>
+                            <button id="btn-side-profile-redo" class="btn btn-secondary btn-sm" type="button" disabled>Redo</button>
+                        </div>
+                        <div class="profile-tool-actions">
+                            <button id="btn-side-profile-add-point" class="btn btn-secondary btn-sm" type="button" disabled>Add midpoint</button>
+                            <button id="btn-side-profile-delete-point" class="btn btn-secondary btn-sm" type="button" disabled>Delete point</button>
+                        </div>
+                    </fieldset>
+                    <fieldset class="profile-tool-section">
+                        <legend>Protection and reset</legend>
+                        <div class="profile-protection-note">
+                            <strong>Structural protection is always on</strong>
+                            <span>Curves may add material but cannot cross inside the locked envelope.</span>
+                        </div>
+                        <button id="btn-side-profile-reset" class="btn btn-secondary" type="button">Reset current side</button>
+                    </fieldset>
+                    <div class="profile-editor-shortcuts">
+                        <strong>Shortcuts</strong>
+                        <span id="side-profile-nudge-shortcut">Arrow keys: 1 mm</span>
+                        <span id="side-profile-nudge-large-shortcut">Shift + arrows: 10 mm</span>
+                        <span>Delete: remove selected point</span>
+                    </div>
+                </aside>
+            </div>
+            <footer class="side-profile-dialog-footer">
+                <p id="side-profile-apply-summary">No decorative changes.</p>
+                <div>
+                    <button id="btn-cancel-side-profile" class="btn btn-secondary" type="button">Cancel</button>
+                    <button id="btn-apply-side-profile" class="btn btn-primary" type="button">Apply profile</button>
+                </div>
+            </footer>
+        </dialog>
+
+        <section id="learning-coach" class="learning-coach" aria-labelledby="learning-coach-title" hidden>
+            <span id="learning-coach-progress" class="export-kicker"></span>
+            <h2 id="learning-coach-title">First Cabinet</h2>
+            <p id="learning-coach-instruction"></p>
+            <p id="learning-coach-why" class="section-hint" hidden></p>
+            <div class="learning-coach-actions">
+                <button id="btn-learning-show" class="btn btn-secondary btn-sm" type="button">Show me</button>
+                <button id="btn-learning-why" class="btn btn-secondary btn-sm" type="button" aria-expanded="false">Why this matters</button>
+                <button id="btn-learning-skip" class="btn btn-secondary btn-sm" type="button">Skip step</button>
+                <button id="btn-learning-exit" class="btn btn-secondary btn-sm" type="button">Exit lesson</button>
+            </div>
+        </section>
+
+        <dialog id="tutorial-layer" class="tutorial-layer" aria-labelledby="tutorial-title" aria-describedby="tutorial-copy" hidden>
+            <div id="tutorial-spotlight" class="tutorial-spotlight" aria-hidden="true"></div>
+            <section id="tutorial-card" class="tutorial-card">
+                <span id="tutorial-progress" class="tutorial-progress" role="status" aria-live="polite"></span>
+                <h2 id="tutorial-title" tabindex="-1"></h2>
+                <p id="tutorial-copy"></p>
+                <div id="tutorial-invitation-actions" class="tutorial-invitation-actions" hidden>
+                    <button id="btn-tutorial-skip" class="btn btn-secondary" type="button">Skip for now</button>
+                    <button id="btn-tutorial-remind" class="btn btn-secondary" type="button">Remind me in 7 days</button>
+                    <button id="btn-tutorial-dismiss" class="btn btn-secondary" type="button">Don't show again</button>
+                    <button id="btn-tutorial-start" class="btn btn-primary" type="button">Start interface tour</button>
+                </div>
+                <div id="tutorial-tour-actions" class="tutorial-actions">
+                    <button id="btn-tutorial-exit" class="btn btn-secondary" type="button">Exit interface tour</button>
+                    <div>
+                        <button id="btn-tutorial-back" class="btn btn-secondary" type="button">Back</button>
+                        <button id="btn-tutorial-next" class="btn btn-primary" type="button">Next</button>
+                    </div>
+                </div>
+            </section>
+        </dialog>
+
+        <div id="status-toast-region" class="status-toast-region" aria-label="Current notifications"></div>
+        <div id="hud-message" class="sr-only" role="status" aria-live="polite" aria-atomic="true">Ready</div>
+    </div>
+
+    <script type="module" src="js/app.js"></script>
+</body>
+</html>

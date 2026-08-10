@@ -1,0 +1,50 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net9.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UseWPF>true</UseWPF>
+    <RootNamespace>CabinetCrafter</RootNamespace>
+    <AssemblyName>CabinetCrafter</AssemblyName>
+    <AssemblyTitle>Cabinet Crafter</AssemblyTitle>
+    <ApplicationTitle>Cabinet Crafter</ApplicationTitle>
+    <Product>Cabinet Crafter</Product>
+    <Authors>Peter Blenkharn</Authors>
+    <Company>CumberlandQuail</Company>
+    <Description>Parametric arcade cabinet design and fabrication planning for Windows.</Description>
+    <Copyright>Copyright (c) 2026 Peter Blenkharn</Copyright>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <IsPackable>false</IsPackable>
+    <NeutralLanguage>en-GB</NeutralLanguage>
+    <ApplicationIcon>assets\cabinet-crafter.ico</ApplicationIcon>
+    <Version>2.0.0</Version>
+    <Deterministic>true</Deterministic>
+    <ContinuousIntegrationBuild Condition="'$(CI)' == 'true'">true</ContinuousIntegrationBuild>
+    <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
+    <PublishSingleFile>false</PublishSingleFile>
+    <PublishTrimmed>false</PublishTrimmed>
+    <ErrorOnDuplicatePublishOutputFiles>true</ErrorOnDuplicatePublishOutputFiles>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)' == 'Release'">
+    <DebugType>none</DebugType>
+    <DebugSymbols>false</DebugSymbols>
+    <AllowedReferenceRelatedFileExtensions>.pri;.dll.config;.exe.config</AllowedReferenceRelatedFileExtensions>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Resource Include="assets\cabinet-crafter.ico" />
+    <Compile Remove="tests\NativeIoSmoke\**\*.cs" />
+    <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.4022.49" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="wwwroot\**\*">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>Always</CopyToPublishDirectory>
+    </Content>
+  </ItemGroup>
+
+</Project>

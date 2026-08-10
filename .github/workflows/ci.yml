@@ -1,0 +1,69 @@
+name: Manufacturing trust
+
+on:
+  push:
+    branches: ['**']
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  windows-build-test-publish:
+    name: Windows build, contracts, and publish smoke
+    runs-on: windows-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+
+      - name: Run headless manufacturing contract tests
+        run: npm run test:ci
+
+      - name: Restore desktop dependencies
+        run: dotnet restore CabinetCrafter.csproj --runtime win-x64 --locked-mode
+
+      - name: Build desktop application
+        run: dotnet build CabinetCrafter.csproj --configuration Release --runtime win-x64 --no-restore --nologo
+
+      - name: Build and verify portable release
+        id: package
+        shell: pwsh
+        run: ./tools/build-release.ps1 -NoRestore
+
+      - name: Run packaged application startup smoke
+        shell: pwsh
+        run: |
+          $executable = Join-Path "${{ steps.package.outputs.package_dir }}" "CabinetCrafter.exe"
+          foreach ($argument in @("--smoke-test", "--integration-smoke-test")) {
+            $smoke = Start-Process -FilePath $executable -ArgumentList $argument -WindowStyle Hidden -PassThru
+            if (-not $smoke.WaitForExit(60000)) {
+              Stop-Process -Id $smoke.Id -Force
+              throw "Packaged startup smoke timed out: $argument"
+            }
+            if ($smoke.ExitCode -ne 0) {
+              throw "Packaged startup smoke failed with exit code $($smoke.ExitCode): $argument"
+            }
+          }
+
+      - name: Upload publish smoke artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.package.outputs.package_name }}
+          path: |
+            ${{ steps.package.outputs.archive_path }}
+            ${{ steps.package.outputs.checksum_path }}
+          if-no-files-found: error
+          retention-days: 7

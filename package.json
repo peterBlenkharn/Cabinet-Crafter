@@ -1,0 +1,18 @@
+{
+  "name": "cabinet-crafter",
+  "version": "2.0.0",
+  "private": true,
+  "author": "Peter Blenkharn (CumberlandQuail)",
+  "license": "MIT",
+  "type": "module",
+  "description": "Dependency-free manufacturing contract tests for Cabinet Crafter",
+  "scripts": {
+    "test": "node --test",
+    "test:ci": "node --test --test-reporter=spec",
+    "verify:release": "node --test tests/copy-hygiene.test.js tests/publish-assets.test.js tests/release-contract.test.js tests/documentation-contract.test.js",
+    "smoke:publish": "node tests/publish-smoke.mjs"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
