@@ -1,7 +1,14 @@
 # Changelog
 
 Status: canonical
-Last updated: 2026-08-10
+Last updated: 2026-08-11
+
+## 2026-08-11
+
+- Rebuilt the repository landing page around an immediate product view, a short captioned tour, a clear five-stage Mermaid workflow, focused feature and safety guidance, and task-based documentation routes.
+- Added the complete Workshop Upright sample with costed hardware, three-sheet MDF plan, confirmed workflow state and fabrication-ready export data, plus an illustrated first-project guide.
+- Added curated light, dark, stage and settings visuals, a social-preview asset, GitHub issue forms, a pull-request template and a public support guide.
+- Added documentation and sample-project contracts that verify the landing-page media, support routes, project readiness, purchasing totals and persisted sheet plan.
 
 ## 2026-08-10
 
@@ -54,7 +61,7 @@ Last updated: 2026-08-10
 ## 2026-07-15
 
 - Replaced gap-producing rectangular panel end relief with joint-aware mitred and butt-cut panel solids.
-- Corrected side-wall extrusion centering so internal panels finish flush with the inside faces of the side walls.
+- Corrected side-wall extrusion centring so internal panels finish flush with the inside faces of the side walls.
 - Added pilot screw references on rectangular panels and mirrored side-wall fixing markers.
 - Updated fabrication diagnostics, component readouts, and SVG exports with joint types and fastener counts.
 - Corrected control-deck layout axes so joystick/button groups sit across cabinet width, added visual layout-style selectors, and added a custom drag layout editor.
@@ -64,7 +71,7 @@ Last updated: 2026-08-10
 
 - Added canonical modular documentation set under `docs/`.
 - Added root `README.md` pointing to the documentation index.
-- Documented the current architecture, parameter API, geometry pipeline, UI workflows, and export behavior.
+- Documented the current architecture, parameter API, geometry pipeline, UI workflows, and export behaviour.
 - Narrowed canonical preset scope to `standard` and `barstool`.
 - Established ultra-minimal opaque wireframe as the canonical visual direction.
 - Replaced neon/glass UI styling with monochrome drafting-style panels, controls, and viewport rendering.
@@ -79,7 +86,7 @@ Last updated: 2026-08-10
 - Added material-thickness-aware joint/intersection diagnostics in the viewport, component readout, and fabrication summary.
 - Added configurable control-deck and front-apron hardware schemas with positions, inclusion toggles, colours, labels, and cutout metadata.
 - Added 24 square colour chips for per-component colour selection, defaulting to off-white.
-- Updated JSON/SVG export behavior to include control hardware metadata and cutout markers.
+- Updated JSON/SVG export behaviour to include control hardware metadata and cutout markers.
 - Replaced texture-only controls with physical 3D buttons, start buttons, and joystick assemblies.
 - Added fitted control layouts with separate X/Y spacing, layout style, player-group axis, group rotation, joystick gap, and apron axis controls.
 - Added full-thickness panel end relief so canonical presets do not self-intersect by default.

@@ -1,0 +1,57 @@
+name: Feature request
+description: Propose a focused improvement to Cabinet Crafter.
+title: "[Feature] "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: Please describe the problem before proposing a particular interface or implementation.
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Workflow area
+      options:
+        - Design
+        - Hardware
+        - Review
+        - Sheets
+        - Export
+        - Across the application
+        - Documentation or packaging
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem to solve
+    validations:
+      required: true
+
+  - type: textarea
+    id: outcome
+    attributes:
+      label: Proposed outcome
+    validations:
+      required: true
+
+  - type: textarea
+    id: manufacturing_impact
+    attributes:
+      label: Manufacturing or safety impact
+      description: Note any effect on dimensions, geometry, hardware fit, validation, nesting or exports.
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checks
+      options:
+        - label: I searched existing issues for related requests.
+          required: true

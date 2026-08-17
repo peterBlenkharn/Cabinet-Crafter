@@ -1,0 +1,83 @@
+name: Bug report
+description: Report reproducible behaviour or incorrect output.
+title: "[Bug] "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Do not include security details or private project data. If this affects fabrication output, independently verify the project before cutting stock.
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - Installation or start-up
+        - Design and 3D view
+        - Hardware
+        - Review and preflight
+        - Sheets and costing
+        - Export
+        - Project files and recovery
+        - Accessibility
+        - Other
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: Cabinet Crafter version
+      placeholder: 2.0.0, commit SHA, or source build
+    validations:
+      required: true
+
+  - type: input
+    id: environment
+    attributes:
+      label: Windows environment
+      placeholder: Windows version and WebView2 version, if known
+    validations:
+      required: true
+
+  - type: textarea
+    id: what_happened
+    attributes:
+      label: What happened?
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Open...
+        2. Change...
+        3. Select...
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected result
+    validations:
+      required: true
+
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Supporting material
+      description: Add screenshots, logs or a sanitised sample project where useful.
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checks
+      options:
+        - label: I searched existing issues for the same problem.
+          required: true
+        - label: I removed personal, confidential and security-sensitive information.
+          required: true

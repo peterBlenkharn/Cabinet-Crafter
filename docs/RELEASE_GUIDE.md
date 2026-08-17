@@ -48,7 +48,7 @@ When a release is Authenticode-signed, inspect the file's Digital Signatures tab
 
 ## First Project
 
-Open Help and choose **Start First Cabinet** for an end-to-end practice project. The shorter **Interface Tour** explains where the main controls are without confirming workflow stages. Save a named project early, complete Hardware and Review confirmation, validate material assignments and sheet layouts, then open Export.
+Open Help and choose **Build my first cabinet** for an end-to-end practice project. The shorter **Interface Tour** explains where the main controls are without confirming workflow stages. Save a named project early, complete Hardware and Review confirmation, validate material assignments and sheet layouts, then open Export.
 
 Fabrication output is not direct machine control. Review [Before You Cut](BEFORE_YOU_CUT.md) before using exported geometry in CAM or a workshop.
 
@@ -83,6 +83,6 @@ If a repeatable fault remains, return to the GitHub repository from which the re
 
 ## Licence And Publisher
 
-Copyright (c) 2026 Peter Blenkharn. CumberlandQuail is the publisher name.
+Copyright (c) 2026 Peter Blenkharn. CumberlandQuail is the publisher name. For personally signed official releases, the expected Authenticode signer is Peter Blenkharn.
 
 Cabinet Crafter's original work is open-source software provided under the MIT License. The release includes the full terms in `LICENSE.txt`. Bundled and redistributed components retain their upstream terms, recorded in `THIRD_PARTY_NOTICES.txt` and the release's SPDX inventory.

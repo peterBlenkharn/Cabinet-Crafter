@@ -1,0 +1,15 @@
+# Release and automation trust boundary
+/.github/                         @peterBlenkharn
+/tools/build-release.ps1         @peterBlenkharn
+/tools/build-release.cmd         @peterBlenkharn
+/CabinetCrafter.csproj           @peterBlenkharn
+/global.json                     @peterBlenkharn
+/packages.lock.json              @peterBlenkharn
+/package.json                    @peterBlenkharn
+
+# Release validation and policy
+/tests/publish-smoke.mjs         @peterBlenkharn
+/tests/release-contract.test.js  @peterBlenkharn
+/SECURITY.md                     @peterBlenkharn
+/docs/RELEASING.md               @peterBlenkharn
+/docs/RELEASE_GUIDE.md           @peterBlenkharn
