@@ -79,16 +79,44 @@ test('geometry documentation names the complete structural load path', async () 
 test('documentation index exposes release, privacy, safety, security and licence guidance', async () => {
     const index = await readDocument('docs/INDEX.md');
     for (const destination of [
+        'FIRST_PROJECT.md',
         'RELEASE_GUIDE.md',
         'PRIVACY_AND_OFFLINE.md',
         'BEFORE_YOU_CUT.md',
         'RELEASING.md',
         'REPOSITORY_STRUCTURE.md',
         '../SECURITY.md',
+        '../SUPPORT.md',
         '../LICENSE',
         '../THIRD_PARTY_NOTICES.md'
     ]) {
         assert.ok(index.includes(destination), `${destination} is missing from the documentation index`);
+    }
+});
+
+test('repository landing page keeps its sample and visual tour complete', async () => {
+    const readme = await readDocument('README.md');
+    const requiredDestinations = [
+        'examples/workshop-upright.cabinet.json',
+        'docs/FIRST_PROJECT.md',
+        'docs/media/readme/hero-light.png',
+        'docs/media/readme/hero-dark.png',
+        'docs/media/readme/demo-poster.png',
+        'docs/media/readme/demo.mp4',
+        'docs/media/readme/design-structure.png',
+        'docs/media/readme/hardware-bom.png',
+        'docs/media/readme/review-ready.png',
+        'docs/media/readme/sheets-overview.png',
+        'docs/media/readme/export-ready.png',
+        'docs/media/readme/design-profile.png',
+        'docs/media/readme/design-display.png',
+        'docs/media/readme/design-controls.png',
+        'docs/media/readme/hardware-layout.png'
+    ];
+
+    for (const destination of requiredDestinations) {
+        assert.ok(readme.includes(destination), `${destination} is missing from the repository landing page`);
+        await readFile(join(repositoryRoot, destination));
     }
 });
 

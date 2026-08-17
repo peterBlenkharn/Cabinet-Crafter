@@ -1,7 +1,7 @@
 # Implementation Status
 
 Status: canonical snapshot  
-Last updated: 2026-08-10
+Last updated: 2026-08-17
 
 This document separates capabilities available in the desktop UI from automatic package behavior and optional service APIs.
 
@@ -21,7 +21,7 @@ This document separates capabilities available in the desktop UI from automatic 
 | Export | Annotated draft SVG is always available. Production SVG uses explicit `mm` dimensions, a matching `viewBox`, decimal source measurements, closed operation groups, and no annotations/reference geometry. Errors cannot be overridden; warnings require acknowledgement. |
 | Fabrication package | The Export dialog creates a ZIP containing versioned project/fabrication/package/nesting/preflight/intelligence/procurement records, per-sheet SVG/DXF, calibration geometry, the fabricated-part BOM, CSV/JSON total procurement BOM, cut list and schedules, labels, reports, an assembly guide, and 1:1 drilling templates for parts that contain drill operations. Material, hardware, and combined estimated costs are summarized in project currency. The currently validated Sheets plan is passed to the package and revalidated before production files are written. |
 | Service assemblies | The rear service opening produces a stable fitted door part with per-side clearance plus hinge/latch reference centres and a schedule. The monitor screen frame produces four stable rail/stile parts with mating metadata. The references do not replace selected-hardware drilling patterns or a detailed hinge/latch editor. |
-| Desktop distribution | A locked, self-contained win-x64 build is packaged as a versioned rooted portable ZIP with SHA-256, end-user guidance, MIT licence, exact WebView2/.NET notices, and clean-package checks. Windows CI runs the headless suite, builds the release, verifies runtime assets, and runs packaged startup smoke. Matching `v<version>` tags publish a GitHub Release with an SPDX JSON SBOM and optional fail-safe Authenticode signing. |
+| Desktop distribution | A locked, self-contained win-x64 build is packaged as a versioned rooted portable ZIP with SHA-256, end-user guidance, MIT licence, exact WebView2/.NET notices, and clean-package checks. Windows CI runs the headless suite, builds the release, verifies runtime assets, and runs packaged startup smoke. Matching annotated `v<version>` tags on `main` build an intentionally unsigned GitHub Release with an SPDX JSON SBOM, then wait for protected publication approval. |
 
 ## Service Layer And Optional Package Capabilities
 

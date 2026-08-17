@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Security vulnerability
+    url: https://github.com/peterBlenkharn/Cabinet-Crafter/security/advisories/new
+    about: Report a vulnerability privately. Do not publish security details in an issue.

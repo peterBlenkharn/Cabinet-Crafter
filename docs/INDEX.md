@@ -2,31 +2,33 @@
 
 Status: canonical
 Audience: users, makers, and open-source contributors
-Last updated: 2026-08-10
+Last updated: 2026-08-17
 
 This directory contains the product, workflow, fabrication, and technical reference documentation for Cabinet Crafter.
 
 ## Fast Navigation
 
+- [Build Your First Cabinet](FIRST_PROJECT.md): a short, illustrated route through the complete workflow using the Workshop Upright sample.
 - [Project Brief](PROJECT_BRIEF.md): product intent, current scope, user-facing capabilities, and design direction.
 - [Implementation Status](IMPLEMENTATION_STATUS.md): shipped UI, automatic export services, API-only capabilities, and remaining end-to-end gaps.
 - [Architecture](ARCHITECTURE.md): desktop shell, web app modules, data ownership, and runtime flow.
 - [Repository And Build Folder Guide](REPOSITORY_STRUCTURE.md): source versus generated output, build configurations, staging, checksums, and public release assets.
-- [Parameter Reference](PARAMETERS.md): canonical parameter names, units, presets, and persistence behavior.
+- [Parameter Reference](PARAMETERS.md): canonical parameter names, units, presets, and persistence behaviour.
 - [Geometry Pipeline](GEOMETRY_PIPELINE.md): side-profile construction, flat-panel generation, component IDs, and metadata.
 - [Controls And Hardware](CONTROLS_AND_HARDWARE.md): control deck/apron schema, explicit layout fitting, hardware definitions, keepouts, and integration status.
 - [Fabrication Diagnostics](FABRICATION_DIAGNOSTICS.md): `FabricationManifestV1`, preflight contracts, material-thickness handling, and export gates.
 - [Mannequin Presets](MANNEQUINS.md): ergonomic reference body presets and rendering style.
 - [UI Workflows](UI_WORKFLOWS.md): presets, parameter editing, selection, component tuning, decals, scale reference, and assembly controls.
-- [Exports](EXPORTS.md): `ProjectDocumentV2`, draft/production SVG, fabrication ZIP, and native delivery behavior.
+- [Exports](EXPORTS.md): `ProjectDocumentV2`, draft/production SVG, fabrication ZIP, and native delivery behaviour.
 - [Windows Release Guide](RELEASE_GUIDE.md): verify, extract, start, update, uninstall, and troubleshoot the portable Windows application.
-- [Privacy And Offline Use](PRIVACY_AND_OFFLINE.md): local data, network behavior, shared-computer considerations, and data removal.
+- [Privacy And Offline Use](PRIVACY_AND_OFFLINE.md): local data, network behaviour, shared-computer considerations, and data removal.
 - [Before You Cut](BEFORE_YOU_CUT.md): design, sheet, CAM, machine, workshop, and assembly safety checks.
-- [Maintainer Release Process](RELEASING.md): locked restore, package verification, tag releases, SBOM generation, and optional signing.
+- [Maintainer Release Process](RELEASING.md): locked restore, package verification, protected tag releases, SBOM generation, and intentional unsigned distribution.
 - [Changelog](CHANGELOG.md): project documentation and implementation change history.
 - [Contributing](../CONTRIBUTING.md): development checks, generated-file hygiene, and inbound MIT licensing.
+- [Support](../SUPPORT.md): where to ask for help, report faults, suggest improvements, and disclose vulnerabilities safely.
 
-Repository licensing and security information is in the root [MIT License](../LICENSE), [Third-Party Notices](../THIRD_PARTY_NOTICES.md), and [Security Policy](../SECURITY.md).
+Repository licensing and security information is in the root [MIT Licence](../LICENSE), [Third-Party Notices](../THIRD_PARTY_NOTICES.md), and [Security Policy](../SECURITY.md).
 
 ## Repository Map
 
@@ -53,4 +55,4 @@ See [Repository And Build Folder Guide](REPOSITORY_STRUCTURE.md) for the complet
 - `wwwroot/js/dummy.js` and `wwwroot/js/dummy-layout.js`: mannequin rendering plus the shared connected-body layout contract.
 - `wwwroot/js/lib/`: vendored Three.js modules.
 - `tools/build-release.cmd` and `tools/build-release.ps1`: versioned, rooted Windows ZIP packaging with clean-package and notice checks.
-- `.github/workflows/release.yml`: tag-driven GitHub Release, optional signing, SBOM, checksum, and release publication.
+- `.github/workflows/release.yml`: tag-driven unsigned GitHub Release with protected publication, SBOM, checksums, and immutable-ready asset upload.

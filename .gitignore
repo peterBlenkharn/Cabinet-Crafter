@@ -6,7 +6,7 @@
 AGENTS.md
 CLAUDE.md
 
-# Secrets and signing material
+# Secrets and private-key material
 /secrets/
 .env
 .env.*

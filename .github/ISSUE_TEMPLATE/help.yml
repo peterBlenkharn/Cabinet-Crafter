@@ -1,0 +1,45 @@
+name: Help and usage question
+description: Ask for help using Cabinet Crafter or understanding its output.
+title: "[Help] "
+labels: ["question"]
+body:
+  - type: markdown
+    attributes:
+      value: For reproducible faults, use the bug form. Never publish vulnerability details here.
+
+  - type: input
+    id: version
+    attributes:
+      label: Cabinet Crafter version
+      placeholder: 2.0.0, commit SHA, or source build
+    validations:
+      required: true
+
+  - type: textarea
+    id: goal
+    attributes:
+      label: What are you trying to do?
+    validations:
+      required: true
+
+  - type: textarea
+    id: blocked
+    attributes:
+      label: Where are you stuck?
+    validations:
+      required: true
+
+  - type: textarea
+    id: tried
+    attributes:
+      label: What have you tried?
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checks
+      options:
+        - label: I checked the documentation and searched existing issues.
+          required: true
+        - label: I removed personal, confidential and security-sensitive information.
+          required: true

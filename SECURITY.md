@@ -27,4 +27,4 @@ General feature requests, expected local project contents, and fabrication advic
 
 ## Verifying A Release
 
-Download releases only from the [latest published GitHub Release](../../releases/latest). Choose the versioned `CabinetCrafter-<version>-win-x64.zip`, not GitHub's generic source-code archive, and compare it with its published SHA-256 checksum before extraction. A checksum confirms file integrity against the published release; it does not prove publisher identity. Authenticode publisher verification is available only when the release workflow has been configured with a valid signing certificate.
+Download releases only from the [latest published GitHub Release](../../releases/latest). Choose the versioned `CabinetCrafter-<version>-win-x64.zip`, not GitHub's generic source-code archive, and compare it with its published SHA-256 checksum before extraction. Current Windows releases are unsigned. A matching checksum confirms that the download matches the release asset represented by the published checksum, but it does not authenticate a Windows publisher.

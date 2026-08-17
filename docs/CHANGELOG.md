@@ -1,13 +1,26 @@
 # Changelog
 
 Status: canonical
-Last updated: 2026-08-10
+Last updated: 2026-08-17
+
+## 2026-08-17
+
+- Made official Windows distribution explicitly unsigned and removed the dormant certificate-secret path from release automation and documentation.
+- Split tagged releases into a read-only build and verification job followed by a protected publication job, with exact payload and checksum verification on both sides of the approval gate.
+- Required annotated version tags to belong to `main`, pinned GitHub Actions to reviewed commits, and switched publication to GitHub's immutable-ready release command.
+
+## 2026-08-11
+
+- Rebuilt the repository landing page around an immediate product view, a short captioned tour, a clear five-stage Mermaid workflow, focused feature and safety guidance, and task-based documentation routes.
+- Added the complete Workshop Upright sample with costed hardware, three-sheet MDF plan, confirmed workflow state and fabrication-ready export data, plus an illustrated first-project guide.
+- Added curated light, dark, stage and settings visuals, a social-preview asset, GitHub issue forms, a pull-request template and a public support guide.
+- Added documentation and sample-project contracts that verify the landing-page media, support routes, project readiness, purchasing totals and persisted sheet plan.
 
 ## 2026-08-10
 
 - Reorganised the public README around the Windows download, one-minute portable start, five-stage product workflow, safety guidance, source build, and contributor routes.
 - Added a canonical repository/build-folder guide distinguishing source, `bin`, `obj`, raw publish output, staged candidates, final ZIPs, checksums, SBOMs, and short-lived Actions artifacts.
-- Clarified the roles of the external ZIP checksum, internal complete-file release manifest, component SBOM, Authenticode publisher identity, and GitHub's automatic source archives.
+- Clarified the roles of the external ZIP checksum, internal complete-file release manifest, component SBOM, unsigned Windows distribution, and GitHub's automatic source archives.
 - Added inbound MIT contribution terms while making the boundary between original Cabinet Crafter work and third-party licence terms explicit.
 - Strengthened release licensing by deriving WebView2 and .NET runtime-pack versions from locked/published metadata and packaging the exact Three.js, .NET Core runtime, Windows Desktop runtime, and WebView2 upstream terms.
 
@@ -23,7 +36,7 @@ Last updated: 2026-08-10
 - Converted Hardware, Review, and Sheets into full-viewport maker stages with persistent completion checkmarks, dedicated Review findings, and explicit continue actions.
 - Added integrated light/dark themes, an automatic and replayable 11-step first-user walkthrough, and a deterministic Cabinet Crafter icon for the Windows executable, taskbar, window, and web surface.
 - Added focused geometry, layout, explode, screw, and nesting regression coverage and verified the packaged Windows web assets.
-- Added MIT release metadata, exact third-party notice packaging, locked .NET dependency restore, versioned rooted portable ZIPs, SHA-256 checksums, clean-package tests, end-user privacy/release/safety guidance, and a tag-driven GitHub Release workflow with SPDX SBOM generation and optional Authenticode signing.
+- Added MIT release metadata, exact third-party notice packaging, locked .NET dependency restore, versioned rooted portable ZIPs, SHA-256 checksums, clean-package tests, end-user privacy/release/safety guidance, and a tag-driven GitHub Release workflow with SPDX SBOM generation.
 
 ## 2026-07-17
 
@@ -54,7 +67,7 @@ Last updated: 2026-08-10
 ## 2026-07-15
 
 - Replaced gap-producing rectangular panel end relief with joint-aware mitred and butt-cut panel solids.
-- Corrected side-wall extrusion centering so internal panels finish flush with the inside faces of the side walls.
+- Corrected side-wall extrusion centring so internal panels finish flush with the inside faces of the side walls.
 - Added pilot screw references on rectangular panels and mirrored side-wall fixing markers.
 - Updated fabrication diagnostics, component readouts, and SVG exports with joint types and fastener counts.
 - Corrected control-deck layout axes so joystick/button groups sit across cabinet width, added visual layout-style selectors, and added a custom drag layout editor.
@@ -64,7 +77,7 @@ Last updated: 2026-08-10
 
 - Added canonical modular documentation set under `docs/`.
 - Added root `README.md` pointing to the documentation index.
-- Documented the current architecture, parameter API, geometry pipeline, UI workflows, and export behavior.
+- Documented the current architecture, parameter API, geometry pipeline, UI workflows, and export behaviour.
 - Narrowed canonical preset scope to `standard` and `barstool`.
 - Established ultra-minimal opaque wireframe as the canonical visual direction.
 - Replaced neon/glass UI styling with monochrome drafting-style panels, controls, and viewport rendering.
@@ -79,7 +92,7 @@ Last updated: 2026-08-10
 - Added material-thickness-aware joint/intersection diagnostics in the viewport, component readout, and fabrication summary.
 - Added configurable control-deck and front-apron hardware schemas with positions, inclusion toggles, colours, labels, and cutout metadata.
 - Added 24 square colour chips for per-component colour selection, defaulting to off-white.
-- Updated JSON/SVG export behavior to include control hardware metadata and cutout markers.
+- Updated JSON/SVG export behaviour to include control hardware metadata and cutout markers.
 - Replaced texture-only controls with physical 3D buttons, start buttons, and joystick assemblies.
 - Added fitted control layouts with separate X/Y spacing, layout style, player-group axis, group rotation, joystick gap, and apron axis controls.
 - Added full-thickness panel end relief so canonical presets do not self-intersect by default.
