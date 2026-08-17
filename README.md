@@ -192,4 +192,4 @@ Start with [Support](SUPPORT.md), then use the appropriate [GitHub issue form](h
 
 Cabinet Crafter's original work is available under the [MIT Licence](LICENSE). Bundled components retain their upstream terms, recorded in [Third-Party Notices](THIRD_PARTY_NOTICES.md).
 
-Copyright © 2026 Peter Blenkharn. CumberlandQuail is the publisher name. For personally signed official releases, the expected Authenticode signer is Peter Blenkharn.
+Copyright © 2026 Peter Blenkharn. CumberlandQuail is the project publishing label. Official Windows releases are currently unsigned and do not display a verified Windows publisher.

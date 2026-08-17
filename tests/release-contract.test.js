@@ -141,16 +141,41 @@ test('release automation is versioned, rooted, checked and tag driven', async ()
 
     const workflow = await readRepositoryFile('.github/workflows/release.yml');
     assert.match(workflow, /tags:/);
-    assert.match(workflow, /Refresh and verify the signed release manifest[\s\S]*-SkipPublish -SkipArchive[\s\S]*Generate SPDX software bill of materials/);
+    assert.match(workflow, /permissions:\s*\n\s*contents: read/);
+    assert.match(workflow, /fetch-depth: 0/);
+    assert.match(workflow, /Confirm annotated tag belongs to main[\s\S]*merge-base --is-ancestor/);
+    assert.match(workflow, /package\.json version[\s\S]*does not match project version/);
+    assert.match(workflow, /Build staged portable release[\s\S]*Run packaged application startup smoke[\s\S]*Generate SPDX software bill of materials[\s\S]*Archive the verified staged release/);
     assert.match(workflow, /anchore\/sbom-action/);
-    assert.match(workflow, /WINDOWS_SIGNING_CERTIFICATE_BASE64/);
-    assert.match(workflow, /softprops\/action-gh-release/);
+    assert.match(workflow, /Upload verified release assets[\s\S]*publish-release:[\s\S]*needs: build-and-verify/);
+    assert.match(workflow, /environment:\s*\n\s*name: release/);
+    assert.match(workflow, /publish-release:[\s\S]*permissions:\s*\n\s*actions: read\s*\n\s*contents: write/);
+    assert.match(workflow, /actions\/download-artifact/);
+    assert.match(workflow, /sha256sum --check "\$\{package\}\.zip\.sha256"[\s\S]*sha256sum --check "\$\{package\}\.spdx\.json\.sha256"/);
+    assert.match(workflow, /gh release create[\s\S]*--verify-tag[\s\S]*--generate-notes/);
+    assert.match(workflow, /intentionally unsigned portable Windows x64 build/);
+    assert.doesNotMatch(workflow, /Authenticode|signtool|WINDOWS_SIGNING|\.pfx|softprops\/action-gh-release/i);
     assert.match(workflow, /--integration-smoke-test/);
     assert.match(workflow, /WaitForExit\(60000\)/);
 
     const ciWorkflow = await readRepositoryFile('.github/workflows/ci.yml');
     assert.match(ciWorkflow, /--integration-smoke-test/);
     assert.match(ciWorkflow, /WaitForExit\(60000\)/);
+    for (const [name, source] of [['release', workflow], ['CI', ciWorkflow]]) {
+        const actionReferences = [...source.matchAll(/uses:\s*([^\s#]+)/g)].map(match => match[1]);
+        assert.ok(actionReferences.length > 0, `${name} workflow must use at least one action`);
+        for (const reference of actionReferences) {
+            assert.match(reference, /@[0-9a-f]{40}$/, `${name} action must use a full commit SHA: ${reference}`);
+        }
+    }
+
+    const codeOwners = await readRepositoryFile('.github/CODEOWNERS');
+    assert.match(codeOwners, /^\/\.github\/\s+@peterBlenkharn$/m);
+    assert.match(codeOwners, /^\/tools\/build-release\.ps1\s+@peterBlenkharn$/m);
+
+    const dependabot = await readRepositoryFile('.github/dependabot.yml');
+    assert.match(dependabot, /package-ecosystem:\s*github-actions/);
+    assert.match(dependabot, /package-ecosystem:\s*nuget/);
 });
 
 test('clean-package validation accepts a complete release and rejects debug or undeclared files', async () => {
@@ -218,8 +243,10 @@ test('end-user release guide provides an exact checksum verification command', a
     assert.match(guide, /Checksum mismatch/);
     assert.match(guide, /Source code \(zip\)[\s\S]*repository source, not the built Windows application/);
     assert.match(guide, /does not prove the publisher's identity/);
+    assert.match(guide, /Official Cabinet Crafter Windows releases are currently unsigned/);
+    assert.match(guide, /Unknown publisher[\s\S]*Microsoft Defender SmartScreen warning/);
     assert.match(guide, /official Microsoft WebView2 page/);
     assert.match(guide, /Copyright \(c\) 2026 Peter Blenkharn/);
-    assert.match(guide, /CumberlandQuail is the publisher name/);
+    assert.match(guide, /CumberlandQuail is the project publishing label/);
     assert.match(guide, /MIT License/);
 });

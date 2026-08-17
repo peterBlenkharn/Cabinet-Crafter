@@ -2,7 +2,7 @@
 
 Status: canonical
 Audience: users, makers, and open-source contributors
-Last updated: 2026-08-11
+Last updated: 2026-08-17
 
 This directory contains the product, workflow, fabrication, and technical reference documentation for Cabinet Crafter.
 
@@ -23,7 +23,7 @@ This directory contains the product, workflow, fabrication, and technical refere
 - [Windows Release Guide](RELEASE_GUIDE.md): verify, extract, start, update, uninstall, and troubleshoot the portable Windows application.
 - [Privacy And Offline Use](PRIVACY_AND_OFFLINE.md): local data, network behaviour, shared-computer considerations, and data removal.
 - [Before You Cut](BEFORE_YOU_CUT.md): design, sheet, CAM, machine, workshop, and assembly safety checks.
-- [Maintainer Release Process](RELEASING.md): locked restore, package verification, tag releases, SBOM generation, and optional signing.
+- [Maintainer Release Process](RELEASING.md): locked restore, package verification, protected tag releases, SBOM generation, and intentional unsigned distribution.
 - [Changelog](CHANGELOG.md): project documentation and implementation change history.
 - [Contributing](../CONTRIBUTING.md): development checks, generated-file hygiene, and inbound MIT licensing.
 - [Support](../SUPPORT.md): where to ask for help, report faults, suggest improvements, and disclose vulnerabilities safely.
@@ -55,4 +55,4 @@ See [Repository And Build Folder Guide](REPOSITORY_STRUCTURE.md) for the complet
 - `wwwroot/js/dummy.js` and `wwwroot/js/dummy-layout.js`: mannequin rendering plus the shared connected-body layout contract.
 - `wwwroot/js/lib/`: vendored Three.js modules.
 - `tools/build-release.cmd` and `tools/build-release.ps1`: versioned, rooted Windows ZIP packaging with clean-package and notice checks.
-- `.github/workflows/release.yml`: tag-driven GitHub Release, optional signing, SBOM, checksum, and release publication.
+- `.github/workflows/release.yml`: tag-driven unsigned GitHub Release with protected publication, SBOM, checksums, and immutable-ready asset upload.

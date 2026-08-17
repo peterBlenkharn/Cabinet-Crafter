@@ -102,7 +102,7 @@ Small text files containing SHA-256 fingerprints:
 - `<package>.spdx.json.sha256`, created in the GitHub workflow, verifies the software bill of materials.
 - `RELEASE_MANIFEST.sha256`, inside the staged/extracted package, verifies each packaged file individually.
 
-Hashes detect changes and download damage. A matching hash does not establish the publisher's identity; use a valid Authenticode signature for that when signing is configured.
+Hashes detect changes and download damage. A matching hash does not establish publisher identity; current Windows releases are unsigned.
 
 ### `artifacts/release/*.spdx.json`
 

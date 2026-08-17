@@ -1,7 +1,13 @@
 # Changelog
 
 Status: canonical
-Last updated: 2026-08-11
+Last updated: 2026-08-17
+
+## 2026-08-17
+
+- Made official Windows distribution explicitly unsigned and removed the dormant certificate-secret path from release automation and documentation.
+- Split tagged releases into a read-only build and verification job followed by a protected publication job, with exact payload and checksum verification on both sides of the approval gate.
+- Required annotated version tags to belong to `main`, pinned GitHub Actions to reviewed commits, and switched publication to GitHub's immutable-ready release command.
 
 ## 2026-08-11
 
@@ -14,7 +20,7 @@ Last updated: 2026-08-11
 
 - Reorganised the public README around the Windows download, one-minute portable start, five-stage product workflow, safety guidance, source build, and contributor routes.
 - Added a canonical repository/build-folder guide distinguishing source, `bin`, `obj`, raw publish output, staged candidates, final ZIPs, checksums, SBOMs, and short-lived Actions artifacts.
-- Clarified the roles of the external ZIP checksum, internal complete-file release manifest, component SBOM, Authenticode publisher identity, and GitHub's automatic source archives.
+- Clarified the roles of the external ZIP checksum, internal complete-file release manifest, component SBOM, unsigned Windows distribution, and GitHub's automatic source archives.
 - Added inbound MIT contribution terms while making the boundary between original Cabinet Crafter work and third-party licence terms explicit.
 - Strengthened release licensing by deriving WebView2 and .NET runtime-pack versions from locked/published metadata and packaging the exact Three.js, .NET Core runtime, Windows Desktop runtime, and WebView2 upstream terms.
 
@@ -30,7 +36,7 @@ Last updated: 2026-08-11
 - Converted Hardware, Review, and Sheets into full-viewport maker stages with persistent completion checkmarks, dedicated Review findings, and explicit continue actions.
 - Added integrated light/dark themes, an automatic and replayable 11-step first-user walkthrough, and a deterministic Cabinet Crafter icon for the Windows executable, taskbar, window, and web surface.
 - Added focused geometry, layout, explode, screw, and nesting regression coverage and verified the packaged Windows web assets.
-- Added MIT release metadata, exact third-party notice packaging, locked .NET dependency restore, versioned rooted portable ZIPs, SHA-256 checksums, clean-package tests, end-user privacy/release/safety guidance, and a tag-driven GitHub Release workflow with SPDX SBOM generation and optional Authenticode signing.
+- Added MIT release metadata, exact third-party notice packaging, locked .NET dependency restore, versioned rooted portable ZIPs, SHA-256 checksums, clean-package tests, end-user privacy/release/safety guidance, and a tag-driven GitHub Release workflow with SPDX SBOM generation.
 
 ## 2026-07-17
 

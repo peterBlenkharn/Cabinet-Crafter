@@ -14,7 +14,7 @@ An accompanying `.spdx.json` file is the software bill of materials for auditing
 
 SHA-256 creates a fingerprint of a file. The matching `.zip.sha256` file records the fingerprint of the ZIP published beside it. If the ZIP is incomplete, damaged, or changed, the calculated fingerprint will not match.
 
-A match confirms that the ZIP is identical to the file represented by the published checksum. It does not prove the publisher's identity. A valid Authenticode signature provides publisher identity when release signing has been configured.
+A match confirms that the ZIP is identical to the file represented by the published checksum. It does not prove the publisher's identity. Official Cabinet Crafter Windows releases are currently unsigned.
 
 ## Install And Start
 
@@ -42,9 +42,7 @@ The package includes the .NET runtime. A supported Microsoft Edge WebView2 Runti
 
 ## Windows Warnings
 
-An unsigned build can trigger Microsoft Defender SmartScreen. Confirm that the download came from the project's published GitHub Release and that its SHA-256 checksum matches before choosing whether to run it. Do not ignore a checksum mismatch.
-
-When a release is Authenticode-signed, inspect the file's Digital Signatures tab and confirm the expected publisher before running it. Signing is optional for community builds, so a signature may not be present.
+Official Cabinet Crafter Windows builds are unsigned. Windows may therefore show **Unknown publisher** or a Microsoft Defender SmartScreen warning. This is expected for the current distribution, but it is not by itself proof that a download is safe. Continue only when the ZIP came from the official GitHub Release and its SHA-256 checksum matches. Do not ignore a checksum mismatch.
 
 ## First Project
 
@@ -81,8 +79,8 @@ Close Cabinet Crafter and remove its extracted application folder. For optional 
 
 If a repeatable fault remains, return to the GitHub repository from which the release was downloaded and report the Cabinet Crafter version, Windows version, WebView2 Runtime version, steps, and a minimal non-sensitive project through its issue tracker.
 
-## Licence And Publisher
+## Licence And Project Identity
 
-Copyright (c) 2026 Peter Blenkharn. CumberlandQuail is the publisher name. For personally signed official releases, the expected Authenticode signer is Peter Blenkharn.
+Copyright (c) 2026 Peter Blenkharn. CumberlandQuail is the project publishing label. Official Windows releases are currently unsigned and do not display a verified Windows publisher.
 
 Cabinet Crafter's original work is open-source software provided under the MIT License. The release includes the full terms in `LICENSE.txt`. Bundled and redistributed components retain their upstream terms, recorded in `THIRD_PARTY_NOTICES.txt` and the release's SPDX inventory.

@@ -6,7 +6,7 @@ Thank you for helping improve Cabinet Crafter. Bug reports, fabrication-domain f
 
 - Search the issue tracker for related work and open an issue before a large or compatibility-sensitive change.
 - Keep fabrication behaviour fail-closed: production output must not bypass errors, warnings, material checks, or sheet validation.
-- Do not include personal project files, secrets, signing credentials, generated build folders, or third-party material you do not have the right to submit.
+- Do not include personal project files, secrets or credentials, generated build folders, or third-party material you do not have the right to submit.
 
 ## Development Checks
 
